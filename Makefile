@@ -4,7 +4,7 @@ LDFLAGS= -pg
 
 all: main
 
-main: main.o 
+main: main.o task.o
 
 clean:
 	@rm  *.o

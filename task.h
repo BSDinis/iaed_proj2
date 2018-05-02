@@ -28,6 +28,8 @@
 
 #include <stdio.h>
 #include <stdlib.h>
+#include <string.h>
+#include <stdbool.h>
 
 typedef struct {
   unsigned long id;
@@ -36,9 +38,9 @@ typedef struct {
 } task;
 
 /* selectors */
-#define id(a) (a).id
-#define descript(a) (a).desc
-#define dur(a) (a).dur
+#define id(a) ((a).id)
+#define descript(a) ((a).desc)
+#define dur(a) ((a).dur)
 
 /* constructor */
 task task_(unsigned long id, char *descript, unsigned long dur);
@@ -47,8 +49,8 @@ task task_(unsigned long id, char *descript, unsigned long dur);
 void free_task(task a);
 
 /* modifiers */
-void change_task_description(task *t, char *new_desc);
-void change_task_duration(task *t, unsigned long new_dur);
+bool change_task_description(task *t, char *new_desc);
+bool change_task_duration(task *t, unsigned long new_dur);
 
 /* external representation */
 char *print_task(task a);
