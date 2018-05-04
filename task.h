@@ -30,6 +30,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include <stdbool.h>
+#include <ctype.h>
 
 typedef struct {
   unsigned long id;
@@ -48,11 +49,17 @@ task task_(unsigned long id, char *descript, unsigned long dur);
 /* destructor */
 void free_task(task a);
 
+/* verifier */
+bool valid_task(task a);
+
 /* modifiers */
 bool change_task_description(task *t, char *new_desc);
 bool change_task_duration(task *t, unsigned long new_dur);
 
 /* external representation */
 char *print_task(task a);
+
+/* get task from string */
+task get_task(char **str);
 
 #endif /* !TASK_H */

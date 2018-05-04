@@ -28,6 +28,8 @@
 
 static bool verify_quoted_str(char *str);
 
+static task invalid_task();
+
 /*-------------------------------*/
 /*-------------------------------*/
 /*-------------------------------*/
@@ -55,18 +57,14 @@ task task_(unsigned long id, char *descript, unsigned long dur)
   task a;
   size_t src_len;
 
-  id(a) = id;
-  dur(a) = dur;
-
   /* verify input correctness
    * exits with error if the input is incorrect */
   if (!verify_quoted_str(descript)) {
-    descript(a) = (char *) malloc((ERROR_BUFFER + 1) * sizeof(char));
-    strncpy(descript(a), "_error_", ERROR_BUFFER + 1);
-    return a;
+    return invalid_task();
   }
 
-
+  id(a) = id;
+  dur(a) = dur;
   src_len = strlen(descript);
   descript(a) = (char *) malloc((src_len + 1) * sizeof(char));
   strncpy(descript(a), descript, src_len + 1);
@@ -107,6 +105,20 @@ static bool verify_quoted_str(char *str)
 }
 
 
+/*
+ * function: free_task
+ *
+ * return: invalid task
+ */
+static task invalid_task()
+{
+  task a;
+  id(a) = dur(a) = 0;
+  descript(a) = (char *) malloc((ERROR_BUFFER + 1) * sizeof(char));
+  strncpy(descript(a), "_error_", ERROR_BUFFER + 1);
+  return a;
+}
+
 
 /*
  * function: free_task
@@ -119,6 +131,17 @@ static bool verify_quoted_str(char *str)
 void free_task(task a)
 {
   free(descript(a));
+}
+
+/* 
+ * function: valid_task
+ * 
+ * input: task
+ * verifies if the task is valid
+ */
+bool valid_task(task a)
+{
+  return strcmp(descript(a), "_error_") == 0;
 }
 
 
@@ -184,4 +207,55 @@ char *print_task(task a)
 
   sprintf(str, "%lu %s %lu", id(a), descript(a), dur(a));
   return str;
+}
+
+
+/*
+ * function: get_task
+ *
+ * input:
+ *   str: a pointer to a string, containing 3 or more words
+ *
+ * return: task, obtained from the string
+ *         invalid task, if the string is invalid
+ *
+ * the valid string format is:
+ *   <id> <description> <duration> <optional args>
+ *
+ * the string is flushed to the beggining of <optional args>
+ *
+ */
+task get_task(char **str)
+{
+  unsigned long id, dur;
+  char *desc;
+  char *token, *aux;
+
+  /* parse the string */
+  token = strtok(*str, " ");
+  if (token == NULL || sscanf(token, "%lu", &id) != 1) 
+    return invalid_task();
+
+  /* find first and second occurences of '"' in string */
+  token = strchr(*str, '"');
+  aux = strchr(token + 1, '"');
+  
+  if (token == NULL || aux == NULL || strlen(aux) == 1) 
+    return invalid_task();
+
+  /* there has to be a space after the quote */
+  if (!isspace(aux[1]))
+    return invalid_task();
+
+  aux[1] = '\0';
+  desc = malloc((strlen(token) + 1) * sizeof(char));
+  strcpy(desc, token);
+
+  /* get the token to begin after the quote and the terminator */
+  *str = aux + 2;
+  token = strtok(*str, " ");
+  if (token == NULL ||  sscanf(token, "%lu", &dur) != 1)
+    return invalid_task();
+
+  return task_(id, desc, dur);
 }
