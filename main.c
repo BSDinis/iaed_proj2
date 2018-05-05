@@ -21,16 +21,28 @@
 
 #include "task.h"
 
+/* TODO: get a hold of the correct val */
+#define CMD_BUFFER 10000
+
 /* 
- * size of the buffer string to store the command 
- * worst case scenario is to add an element, which needs less than 350 chars
- * alloc 512 for good measure 
+ * number of possible command
+ * also the number of implemented functionallities, 
+ * represented by their wrapper functions
  */
-#define CMD_BUFFER 512
+#define N_CMDS 6
+
+/*
+ * define the command type, cmd
+ */
+typedef enum {ADD = 0, DUR, DEP, RM, PATH, EXIT, INVALID} cmd;
 
 /*-------------------------------*/
 /* prototypes */
 /*-------------------------------*/
+
+cmd get_cmd(char **cmd_str);
+
+bool valid_command(cmd c);
 
 /*-------------------------------*/
 /*-------------------------------*/
@@ -39,7 +51,25 @@
 
 int main(int argc, char *argv[])
 {
+  cmd command;
+  char *cmd_str = (char *) malloc((CMD_BUFFER) * sizeof(char));
 
+  /* function array, with the implemented functionalities */
+  void (*func[])(char *) = 
+    {&add, &duration, &depend, &remove, &path, &exit};
+
+  do {
+    fgets(cmd_str, CMD_BUFFER, stdin);
+    command = get_cmd(&cmd_str);
+
+    if (valid_command(command)) {
+      func[cmd](cmd_str);
+    }
+    else {
+      printf("illegal arguments\n");
+    }
+  } while(cmd != EXIT);
+    
   return 0;
 }
 

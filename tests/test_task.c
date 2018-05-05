@@ -36,6 +36,8 @@
 int main()
 {
   char *str = (char *) malloc((CMD_BUFFER + 1) * sizeof(char));
+  char *orig = str;
+  char *aux;
   task t;
   size_t i = 1;
 
@@ -49,13 +51,20 @@ int main()
       printf("illegal arguments\n");
       printf("\n\n");
       i++;
+      free_task(t);
       continue;
     }
 
-    printf("orig: %s ||", print_task(t));
+    aux = print_task(t);
+    printf("orig: %s ||", aux);
+    free(aux);
+
     change_task_duration(&t, id(t));
     change_task_description(&t, "\"i am a dummy description\"");
-    printf("changed: %s\n", print_task(t));
+
+    aux = print_task(t);
+    printf("changed: %s\n", aux);
+    free(aux);
 
     if (valid_early(t) && valid_late(t)) 
       printf("%lu : %lu\n", early(t), late(t));
@@ -68,7 +77,9 @@ int main()
 
     printf("\n\n");
     i++;
+    free_task(t);
   }
 
+  free(orig);
   return 0;
 }

@@ -30,6 +30,10 @@ static bool verify_quoted_str(char *str);
 
 static task invalid_task();
 
+static bool get_ulong(char **str, unsigned long *u);
+
+static bool get_quoted_str(char **str, char **quoted_str);
+
 /*-------------------------------*/
 /*-------------------------------*/
 /*-------------------------------*/
@@ -286,11 +290,10 @@ char *print_task(task a)
 /*
  * function: get_task
  *
- * input:
+ * gets a task from a string
  *   str: a pointer to a string, containing 3 or more words
  *
- * return: task, obtained from the string
- *         invalid task, if the string is invalid
+ * return: task or invalid task (if the string is invalid)
  *
  * the valid string format is:
  *   <id> <description> <duration> <optional args>
@@ -301,38 +304,75 @@ char *print_task(task a)
 task get_task(char **str)
 {
   unsigned long id, dur;
-  char *desc;
-  char *token, *aux;
+  char *desc = NULL;
+  task a;
 
-  /* parse the string */
-  token = strtok(*str, " ");
-  if (token == NULL || token[0] == '-' || sscanf(token, "%lu", &id) != 1) 
+  if (!get_ulong(str, &id) || 
+      !get_quoted_str(str, &desc) ||
+      !get_ulong(str, &dur)) {
+
+    free(desc);
     return invalid_task();
+  }
+
+  a = task_(id, desc, dur);
+  free(desc);
+  return a;
+}
+
+
+/*
+ * function: get_ulong
+ *
+ * gets an unsigned long from the first token in str
+ *   str: pointer to a string
+ *   u: pointer to an unsigned long, to be filled
+ *
+ * return: false on incorrect input
+ */
+static bool get_ulong(char **str, unsigned long *u)
+{
+  char *token;
+  token = strtok(*str, " \n");
+
+  if (token == NULL || token[0] == '-' || sscanf(token, "%lu", u) != 1)  {
+    return false;
+  }
 
   *str += strlen(token) + 1;
+  return true;
+}
+
+
+/*
+ * function: get_quoted_str
+ *
+ * gets a string with the "<substr>" format
+ *   str: pointer to string where the token is extracted
+ *   quoted_str: pointer to string, to be filled
+ *
+ * return: false on incorrect input
+ */
+static bool get_quoted_str(char **str, char **quoted_str)
+{
+  char *token, *aux;
 
   /* find first and second occurences of '"' in string */
   token = strchr(*str, '\"');
   aux = strchr(token + 1, '\"');
   
-  if (token == NULL || aux == NULL || strlen(aux) == 1) 
-    return invalid_task();
-
-  /* there has to be a space after the quote */
-  if (!isspace(aux[1]))
-    return invalid_task();
+  if (token == NULL || aux == NULL ||
+      strlen(aux) == 1 || !isspace(aux[1])) {
+    return false;
+  }
 
   aux[1] = '\0';
-  desc = malloc((strlen(token) + 1) * sizeof(char));
-  strcpy(desc, token);
 
-  /* get the token to begin after the quote and the terminator */
+  *quoted_str = malloc((strlen(token) + 1) * sizeof(char));
+  strcpy(*quoted_str, token);
+
+  /* flush the string to after the quote and the terminator */
   *str = aux + 2;
-  token = strtok(*str, " \n");
-  if (token == NULL || token[0] == '-' || sscanf(token, "%lu", &dur) != 1)
-    return invalid_task();
-
-  *str += strlen(token) + 1;
-
-  return task_(id, desc, dur);
+  return true;
 }
+
