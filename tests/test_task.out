@@ -1,0 +1,45 @@
+::::TEST 1:::::
+1 "asdf" 2
+ ->  orig: 1 "asdf" 2 ||changed: 1 "i am a dummy description" 1
+2224 : 2224
+
+
+::::TEST 2:::::
+3 "asdf" 5
+ ->  orig: 3 "asdf" 5 ||changed: 3 "i am a dummy description" 3
+2224 : 2224
+
+
+::::TEST 3:::::
+5 "outra coisa" 4
+ ->  orig: 5 "outra coisa" 4 ||changed: 5 "i am a dummy description" 5
+2224 : 2224
+
+
+::::TEST 4:::::
+-2 "asdf" 1
+ -> -2 illegal arguments
+
+
+::::TEST 5:::::
+2 "asdf" -1
+ -> -1 illegal arguments
+
+
+::::TEST 6:::::
+2 "asdf -1
+ -> "asdf -1
+ illegal arguments
+
+
+::::TEST 7:::::
+2 "asdf -1"
+ ->  illegal arguments
+
+
+::::TEST 8:::::
+2 "asdf -1" 2
+ ->  orig: 2 "asdf -1" 2 ||changed: 2 "i am a dummy description" 2
+2224 : 2224
+
+

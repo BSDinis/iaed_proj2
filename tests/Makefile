@@ -2,16 +2,12 @@ CC=gcc
 CFLAGS= -g -ansi -pedantic -Wall -Werror -I.
 #LDFLAGS= -pg
 
-all: main
+all: test_task
 
-tests: test_task
-
-main: main.o task.o
-
-test_task: task.o test_task.o
+test_task: ../task.o test_task.o
 
 clean:
 	@rm  *.o
 
 clean-all: clean
-	@rm -f main test_task
+	@rm -f test_task

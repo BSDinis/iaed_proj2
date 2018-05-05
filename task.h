@@ -63,6 +63,9 @@ void free_task(task a);
 /* verifier */
 bool valid_task(task a);
 
+/* test */
+bool critical_task(task a);
+
 /* modifiers */
 
 bool change_task_description(task *t, char *new_desc);

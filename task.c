@@ -139,7 +139,19 @@ void free_task(task a)
  */
 bool valid_task(task a)
 {
-  return strcmp(descript(a), "_error_") == 0;
+  return strcmp(descript(a), "_error_") != 0;
+}
+
+
+/* 
+ * function: critical_task
+ * 
+ * input: task
+ * verifies if the task is critical (early == late)
+ */
+bool critical_task(task a)
+{
+  return (valid_early(a) && valid_late(a) && early(a) == late(a));
 }
 
 
@@ -297,9 +309,11 @@ task get_task(char **str)
   if (token == NULL || token[0] == '-' || sscanf(token, "%lu", &id) != 1) 
     return invalid_task();
 
+  *str += strlen(token) + 1;
+
   /* find first and second occurences of '"' in string */
-  token = strchr(*str, '"');
-  aux = strchr(token + 1, '"');
+  token = strchr(*str, '\"');
+  aux = strchr(token + 1, '\"');
   
   if (token == NULL || aux == NULL || strlen(aux) == 1) 
     return invalid_task();
@@ -314,9 +328,11 @@ task get_task(char **str)
 
   /* get the token to begin after the quote and the terminator */
   *str = aux + 2;
-  token = strtok(*str, " ");
+  token = strtok(*str, " \n");
   if (token == NULL || token[0] == '-' || sscanf(token, "%lu", &dur) != 1)
     return invalid_task();
+
+  *str += strlen(token) + 1;
 
   return task_(id, desc, dur);
 }
