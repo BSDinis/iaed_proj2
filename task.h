@@ -31,19 +31,30 @@
 #include <string.h>
 #include <stdbool.h>
 #include <ctype.h>
+#include <limits.h>
 
 typedef struct {
   unsigned long id;
   char *desc;
   unsigned long dur;
+  unsigned long early;
+  unsigned long late;
+  bool valid_early, valid_late;
 } task;
 
 /* selectors */
 #define id(a) ((a).id)
 #define descript(a) ((a).desc)
 #define dur(a) ((a).dur)
+#define early(a) ((a).early)
+#define late(a) ((a).late)
+#define valid_early(a) ((a).valid_early)
+#define valid_late(a) ((a).valid_late)
 
-/* constructor */
+/* constructor
+ * returns a task with the parameters if they are correct
+ * returns an invalid task otherwise
+ */
 task task_(unsigned long id, char *descript, unsigned long dur);
 
 /* destructor */
@@ -53,8 +64,15 @@ void free_task(task a);
 bool valid_task(task a);
 
 /* modifiers */
+
 bool change_task_description(task *t, char *new_desc);
 bool change_task_duration(task *t, unsigned long new_dur);
+
+/* change_early and change_late make the valid flags true */
+bool change_early(task *t, unsigned long new_early);
+bool change_late(task *t, unsigned long new_late);
+void invalidate_early(task *t);
+void invalidate_late(task *t);
 
 /* external representation */
 char *print_task(task a);

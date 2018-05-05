@@ -65,9 +65,13 @@ task task_(unsigned long id, char *descript, unsigned long dur)
 
   id(a) = id;
   dur(a) = dur;
+
   src_len = strlen(descript);
   descript(a) = (char *) malloc((src_len + 1) * sizeof(char));
   strncpy(descript(a), descript, src_len + 1);
+
+  valid_early(a) = false;
+  valid_late(a) = false;
 
   return a;
 }
@@ -82,9 +86,7 @@ task task_(unsigned long id, char *descript, unsigned long dur)
  * return: true if str is correct; false otherwise
  *
  * str is said to be incorrect if it isn't delimited by quotes
- *
- * if str is correct but has a size larger DESCRIPT_BUFFER,
- * it is truncated and a quote is added at the end (returning true)
+ *                                or exceeds the buffer
  */
 static bool verify_quoted_str(char *str)
 {
@@ -94,12 +96,8 @@ static bool verify_quoted_str(char *str)
 
   len = strlen(str);
   
-  if (str[0] != '"' || str[len - 1] != '"') return false;
-
-  if (len > DESCRIPT_BUFFER) {
-    str[DESCRIPT_BUFFER - 1] = '"';
-    str[DESCRIPT_BUFFER] = '\0';
-  }
+  if (str[0] != '"' || str[len - 1] != '"' || len > DESCRIPT_BUFFER) 
+    return false;
 
   return true;
 }
@@ -177,12 +175,75 @@ bool change_task_description(task *t, char *new_desc)
  *   new_dur: new task duration
  *
  * returns: true if the change was successful;
- *   if it wasn't the duration remains the same
  */
 bool change_task_duration(task *t, unsigned long new_dur)
 {
   dur(*t) = new_dur;
   return true;
+}
+
+
+/*
+ * function: change_early
+ *
+ * modifier for the task datatype
+ *   t: ptr to a task
+ *   new_early: new early start
+ *
+ * turns the validation flag to true
+ * returns true on a successful change
+ */
+bool change_early(task *t, unsigned long new_early)
+{
+  early(*t) = new_early;
+  valid_early(*t) = true;
+  return true;
+}
+
+
+/*
+ * function: change_late
+ *
+ * modifier for the task datatype
+ *   t: ptr to a task
+ *   new_late: new late start
+ *
+ * turns the validation flag to true
+ * returns true on a successful change
+ */
+bool change_late(task *t, unsigned long new_late)
+{
+  late(*t) = new_late;
+  valid_late(*t) = true;
+  return true;
+}
+
+
+/*
+ * function: invalidate_early
+ *
+ * modifier for the task datatype
+ *   t: ptr to a task
+ *
+ * turns the validation flag to false
+ */
+void invalidate_early(task *t)
+{
+  valid_early(*t) = false;
+}
+
+
+/*
+ * function: invalidate_late
+ *
+ * modifier for the task datatype
+ *   t: ptr to a task
+ *
+ * turns the validation flag to false
+ */
+void invalidate_late(task *t)
+{
+  valid_late(*t) = false;
 }
 
 
@@ -194,7 +255,7 @@ bool change_task_duration(task *t, unsigned long new_dur)
  *
  * return: str with external representation of a task
  *
- * representation: <id> <description> <durarion>
+ * representation: <id> <description> <duration>
  */
 char *print_task(task a)
 {
@@ -233,7 +294,7 @@ task get_task(char **str)
 
   /* parse the string */
   token = strtok(*str, " ");
-  if (token == NULL || sscanf(token, "%lu", &id) != 1) 
+  if (token == NULL || token[0] == '-' || sscanf(token, "%lu", &id) != 1) 
     return invalid_task();
 
   /* find first and second occurences of '"' in string */
@@ -254,7 +315,7 @@ task get_task(char **str)
   /* get the token to begin after the quote and the terminator */
   *str = aux + 2;
   token = strtok(*str, " ");
-  if (token == NULL ||  sscanf(token, "%lu", &dur) != 1)
+  if (token == NULL || token[0] == '-' || sscanf(token, "%lu", &dur) != 1)
     return invalid_task();
 
   return task_(id, desc, dur);
