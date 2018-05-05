@@ -127,7 +127,6 @@ cmd get_cmd(char **cmd_str_ptr)
       c = INVALID;
   }
 
-  free(token);
   return c;
 }
 
