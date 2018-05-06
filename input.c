@@ -16,6 +16,9 @@
 /* prototypes */
 /*-------------------------------*/
 
+/* verifies if a string is a representation of a ulong */
+static bool is_ulong(char *str);
+
 /*-------------------------------*/
 /*-------------------------------*/
 /*-------------------------------*/
@@ -32,15 +35,38 @@
 bool get_ulong(char **str, unsigned long *u)
 {
   char *token;
-  token = strtok(*str, " \n");
 
-  if (token == NULL || token[0] == '-' || sscanf(token, "%lu", u) != 1)  {
+  if (!get_str(str, &token)) {
+    free(token);
     return false;
   }
 
-  *str += strlen(token) + 1;
+  if (!is_ulong(token) || sscanf(token, "%lu", u) < 1) {
+    free(token);
+    return false;
+  }
+
+  free(token);
   return true;
 }
+
+
+/*
+ * function: is_ulong
+ *
+ * verifies if a string can be fully converted to an ulong
+ *   str: string to be verified
+ *
+ * returns: true if the string only has digits
+ */
+static bool is_ulong(char *str)
+{
+  int i = 0;
+  while (str[i] != '\0' && isdigit(str[i++]));
+
+  return str[i] == 0;
+}
+
 
 /*
  * function: get_ulong_list
@@ -53,18 +79,22 @@ bool get_ulong(char **str, unsigned long *u)
  */
 bool get_ulong_list(char **str, unsigned long **list, size_t *n_elems, size_t *n_allocd)
 {
+  unsigned long u;
   *n_elems = 0;
   *n_allocd = INIT_ALLOC;
   *list = (unsigned long *) malloc((*n_allocd) * sizeof(unsigned long));
 
-  while (*str != NULL) {
-    if (!get_ulong(str, &(*list[(*n_elems)++]))) {
+  while (strlen(*str) >= 1) {
+    if (!get_ulong(str, &u)) {
       free(*list);
-      return false;
+      return false;          
     }
-    else if (*n_elems == *n_allocd) {
-      *n_allocd *= 2;
-      *list = (unsigned long *) realloc(*list, (*n_allocd) * sizeof(unsigned long));
+    else {
+      (*list)[(*n_elems)++] = u;
+      if (*n_elems == *n_allocd) {
+        *n_allocd *= 2;
+        *list = (unsigned long *) realloc(*list, (*n_allocd) * sizeof(unsigned long));
+      }
     }
   }
 
@@ -91,7 +121,7 @@ bool get_str(char **str, char **out_str)
   *out_str = malloc((strlen(token) + 1) * sizeof(char));
   strcpy(*out_str, token);
 
-  *str += strlen(token) + 2;
+  *str += strlen(token) + 1;
   return true;
 }
 
