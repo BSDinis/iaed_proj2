@@ -20,6 +20,13 @@
 #include <stdbool.h>
 #include <ctype.h>
 
+void add_task(unsigned long id, char *descript, unsigned long dur, 
+    unsigned long *ids, size_t n_ids, size_t allocd);
 
+void list_task_duration(unsigned long dur);
+
+void list_dependencies(unsigned long id);
+
+void remove_task_id(unsigned long id);
 
 #endif /* !DUMMY_H */

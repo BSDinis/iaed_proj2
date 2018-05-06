@@ -20,6 +20,8 @@
 #include <ctype.h>
 
 #include "task.h"
+#include "input.h"
+#include "dummy.h"
 
 /* TODO: get a hold of the correct val */
 #define CMD_BUFFER 10000
@@ -55,7 +57,6 @@ void remove_task(char *cmd_str);
 void path(char *cmd_str);
 
 void exit_proj(char *cmd_str);
-
 
 /*-------------------------------*/
 /*-------------------------------*/
@@ -104,10 +105,10 @@ cmd get_cmd(char **cmd_str_ptr)
 {
   cmd c;
   char *token;
-  token = strtok(*cmd_str_ptr, " \n");
 
-  if (token == NULL)  {
-    c = INVALID;
+  if (!get_str(cmd_str_ptr, &token)) {
+    free(token);
+    return INVALID;
   }
   else {
     *cmd_str_ptr += strlen(token) + 1;
@@ -127,6 +128,7 @@ cmd get_cmd(char **cmd_str_ptr)
       c = INVALID;
   }
 
+  free(token);
   return c;
 }
 
@@ -149,11 +151,39 @@ bool valid_command(cmd c)
  * adds a task to the project
  *   cmd_str: command string, only with the arguments
  *
- * parses the rest of the cmd string to call the add_task TODO:??? function
+ * parses the rest of the cmd string to call the add_task function TODO
+ * correct input:
+ *   add <id> <description> <dur> <ids>
  */
 void add(char *cmd_str)
 {
-  printf("added a dummy task\n");
+  size_t n_ids, allocd;
+  unsigned long id, dur, *ids;
+  char *description;
+
+  if (!get_ulong(&cmd_str, &id)) {
+    printf("illegal arguments\n");
+    return;
+  }
+  if (!get_quoted_str(&cmd_str, &description)) {
+    printf("illegal arguments\n");
+    free(description);
+  }
+  if (!get_ulong(&cmd_str, &dur)) {
+    printf("illegal arguments\n");
+    free(description);
+    return;
+  }
+  if (!get_ulong_list(&cmd_str, &ids, &n_ids, &allocd)) {
+    printf("illegal arguments\n");
+    free(description);
+    free(ids);
+    return;
+  }
+
+  add_task(id, description, dur, ids, n_ids, allocd);
+  free(description);
+  free(ids);
 }
 
 
@@ -163,11 +193,20 @@ void add(char *cmd_str)
  * lists the tasks with a given (or longer) duration
  *   cmd_str: command string, only with the arguments
  *
- * parses the rest of the cmd string to call the task_duration TODO:??? function
+ * parses the rest of the cmd string to call the list_task_duration function TODO
  */
 void duration(char *cmd_str)
 {
-  printf("you should really implement a duration function, dont ya think?\n");
+  unsigned long dur;
+
+  if (empty_str(cmd_str)) {
+    list_task_duration(0);
+  }
+  else if (!get_ulong(&cmd_str, &dur) || !empty_str(cmd_str)) {
+    printf("illegal arguments\n");
+  }
+
+  list_task_duration(dur);
 }
 
 /*
@@ -176,11 +215,18 @@ void duration(char *cmd_str)
  * lists the dependencies of a task
  *   cmd_str: command string, only with the arguments
  *
- * parses the rest of the cmd string to call the list_dependencies TODO:??? function
+ * parses the rest of the cmd string to call the list_dependencies function TODO
  */
 void depend(char *cmd_str)
 {
-  printf("tell me who you are, i'll tell you who you depend on\n");
+  unsigned long id;
+
+  if (!get_ulong(&cmd_str, &id) || !empty_str(cmd_str)) {
+    printf("illegal arguments\n");
+    return;
+  }
+
+  list_dependencies(id);
 }
 
 
@@ -190,11 +236,18 @@ void depend(char *cmd_str)
  * removes a task from the project
  *   cmd_str: command string, only with the arguments
  *
- * parses the rest of the cmd string to call the remove_task TODO:??? function
+ * parses the rest of the cmd string to call the remove_task_id function TODO 
  */
 void remove_task(char *cmd_str)
 {
-  printf("i had sth to tell you, but apparently someone removed that line\n");
+  unsigned long id;
+
+  if (!get_ulong(&cmd_str, &id) || !empty_str(cmd_str)) {
+    printf("illegal arguments\n");
+    return;
+  }
+
+  remove_task_id(id);
 }
 
 /*
@@ -203,10 +256,14 @@ void remove_task(char *cmd_str)
  * lists the critical path of a project
  *   cmd_str: command string, only with the arguments
  *
- * parses the rest of the cmd string to call the proj_path: TODO:??? function
+ * parses the rest of the cmd string to call the proj_path function TODO
  */
 void path(char *cmd_str)
 {
+  if (!empty_str(cmd_str)) {
+    printf("illegal arguments\n");
+  }
+
   printf("the path of the righteous man is beset on all sides by the inequities of the selfish and the tiranny of evil men\n");
 }
 
@@ -217,9 +274,13 @@ void path(char *cmd_str)
  * packs everything up to quit the program
  *   cmd_str: command string, only with the arguments
  *
- * parses the rest of the cmd string to call the free_project TODO:??? function
+ * parses the rest of the cmd string to call the free_project function TODO
  */
 void exit_proj(char *cmd_str)
 {
+  if (!empty_str(cmd_str)) {
+    printf("illegal arguments\n");
+  }
+
   printf("it would seem i should get back on my way\n");
 }

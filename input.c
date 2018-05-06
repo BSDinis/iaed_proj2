@@ -158,3 +158,20 @@ bool get_quoted_str(char **str, char **out_str)
   return true;
 }
 
+
+/*
+ * function: empty_str
+ *
+ * checks if a string is empty
+ *   str: string to be checked
+ *
+ * return: false if there is a non-whitespace char
+ */
+bool empty_str(char *str)
+{
+  size_t i = 0;
+  while (str[i] != '\0' && isspace(str[i])) 
+    i++;
+
+  return str[i] == '\0';
+}

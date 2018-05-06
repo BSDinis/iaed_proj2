@@ -13,8 +13,8 @@
  * all functions flush the input string to after the segment which was parsed
  */
 
-#ifndef TASK_H
-#define TASK_H
+#ifndef INPUT_H
+#define INPUT_H
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -36,4 +36,6 @@ bool get_str(char **str, char **out_str);
 /* get a string delimited by quotes*/
 bool get_quoted_str(char **str, char **out_str);
 
-#endif /* !TASK_H */
+/* check if a string is empty */
+bool empty_str(char *str);
+#endif /* !INPUT_H */
