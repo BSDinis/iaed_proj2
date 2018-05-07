@@ -66,15 +66,17 @@ void exit_proj(char *cmd_str);
 int main(int argc, char *argv[])
 {
   cmd command;
-  char *cmd_str = (char *) malloc((CMD_BUFFER) * sizeof(char));
-  char *orig = cmd_str;
+  char *cmd_str;
+  char *orig;
 
   /* function array, with the implemented functionalities */
   void (*func[])(char *) = 
     {&add, &duration, &depend, &remove_task, &path, &exit_proj};
 
   do {
-    fgets(cmd_str, CMD_BUFFER, stdin);
+    if ((cmd_str = get_line()) == NULL) return 1;
+
+    orig = cmd_str;
     command = get_cmd(&cmd_str);
 
     if (valid_command(command)) {
@@ -83,9 +85,10 @@ int main(int argc, char *argv[])
     else {
       printf("illegal arguments\n");
     }
+
+    free(orig);
   } while(command != EXIT);
     
-  free(orig);
   return 0;
 }
 
@@ -111,7 +114,6 @@ cmd get_cmd(char **cmd_str_ptr)
     return INVALID;
   }
   else {
-    *cmd_str_ptr += strlen(token) + 1;
     if (strcmp(token, "add") == 0)
       c = ADD;
     else if (strcmp(token, "duration") == 0)
@@ -157,31 +159,34 @@ bool valid_command(cmd c)
  */
 void add(char *cmd_str)
 {
-  size_t n_ids, allocd;
+  size_t n_ids;
   unsigned long id, dur, *ids;
   char *description;
 
   if (!get_ulong(&cmd_str, &id)) {
     printf("illegal arguments\n");
+    cmd_str[0] = '\0';
     return;
   }
   if (!get_quoted_str(&cmd_str, &description)) {
     printf("illegal arguments\n");
-    free(description);
+    cmd_str[0] = '\0';
+    return;
   }
   if (!get_ulong(&cmd_str, &dur)) {
     printf("illegal arguments\n");
+    cmd_str[0] = '\0';
     free(description);
     return;
   }
-  if (!get_ulong_list(&cmd_str, &ids, &n_ids, &allocd)) {
+  if (!get_ulong_list(&cmd_str, &ids, &n_ids)) {
     printf("illegal arguments\n");
+    cmd_str[0] = '\0';
     free(description);
-    free(ids);
     return;
   }
 
-  add_task(id, description, dur, ids, n_ids, allocd);
+  add_task(id, description, dur, ids, n_ids);
   free(description);
   free(ids);
 }

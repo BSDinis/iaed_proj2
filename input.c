@@ -11,6 +11,7 @@
 #include "input.h"
 
 #define INIT_ALLOC 4
+#define INIT_BUFF 256
 
 /*-------------------------------*/
 /* prototypes */
@@ -77,12 +78,12 @@ static bool is_ulong(char *str)
  *
  * return: false on incorrect input
  */
-bool get_ulong_list(char **str, unsigned long **list, size_t *n_elems, size_t *n_allocd)
+bool get_ulong_list(char **str, unsigned long **list, size_t *n_elems)
 {
   unsigned long u;
+  size_t n_allocd = INIT_ALLOC;
   *n_elems = 0;
-  *n_allocd = INIT_ALLOC;
-  *list = (unsigned long *) malloc((*n_allocd) * sizeof(unsigned long));
+  *list = (unsigned long *) malloc(n_allocd * sizeof(unsigned long));
 
   while (strlen(*str) >= 1) {
     if (!get_ulong(str, &u)) {
@@ -91,15 +92,56 @@ bool get_ulong_list(char **str, unsigned long **list, size_t *n_elems, size_t *n
     }
     else {
       (*list)[(*n_elems)++] = u;
-      if (*n_elems == *n_allocd) {
-        *n_allocd *= 2;
-        *list = (unsigned long *) realloc(*list, (*n_allocd) * sizeof(unsigned long));
+      if (*n_elems == n_allocd) {
+        n_allocd *= 2;
+        *list = (unsigned long *) realloc(*list, (n_allocd) * sizeof(unsigned long));
       }
     }
   }
 
+  /* frees unnecessary memory */
+  *list = (unsigned long *) realloc(*list, (*n_elems) * sizeof(unsigned long));
   return true;
 }
+
+/* 
+ * function: get_line
+ *
+ * reads a line from stdinput
+ * allocates memory exponentially to accomodate
+ * doesn't include newline character
+ *
+ * return: string,
+ *         NULL on EOF
+ */
+char *get_line()
+{
+  size_t allocd, len;
+  char *line;
+  char ch;
+
+  allocd = INIT_BUFF;
+  len = 0;
+  line = (char *) malloc(allocd * sizeof(char));
+
+  while ((ch = fgetc(stdin)) != EOF && ch != '\n') {
+    line[len++] = ch;
+    if (len == allocd) {
+      allocd *= 2;
+      line = (char *) realloc(line, allocd * sizeof(char));
+    }
+  }
+
+  if (ch == EOF) {
+    free(line);
+    return NULL;
+  }
+
+  line[len++] = '\0';
+  line = (char *) realloc(line, len * sizeof(char));
+  return line;
+}
+
 
 /*
  * function: get_str

@@ -28,7 +28,10 @@ bool get_ulong(char **str, unsigned long *u);
 
 /* get a list of unsigned longs:
  * returns the list, the number of elements and the allocd memory*/
-bool get_ulong_list(char **str, unsigned long **list, size_t *n_elems, size_t *n_allocd);
+bool get_ulong_list(char **str, unsigned long **list, size_t *n_elems);
+
+/* get a line */
+char *get_line();
 
 /* get a string */
 bool get_str(char **str, char **out_str);

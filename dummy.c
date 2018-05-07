@@ -23,17 +23,17 @@
 
 
 void add_task(unsigned long id, char *descript, unsigned long dur, 
-    unsigned long *ids, size_t n_ids, size_t allocd)
+    unsigned long *ids, size_t n_ids)
 {
   size_t i;
-  printf("inputs:\n");
+  printf("inputs\n");
   printf("id: %lu\n", id);
   printf("description: %s\n", descript);
   printf("dur: %lu\n", dur);
 
   printf("ids:");
   for (i = 0; i < n_ids; printf(" %lu", ids[i++]));
-  printf("\nfilled %lu of the %lu allocd positions\n\n", n_ids, allocd);
+  printf("\nlen: %lu\n\n", n_ids);
 
   printf("added a dummy task\n");
 }
