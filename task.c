@@ -26,13 +26,9 @@
 /* prototypes */
 /*-------------------------------*/
 
-static bool verify_quoted_str(char *str);
+static bool verify_quoted_str(char *str, size_t buffer_size);
 
 static task invalid_task();
-
-static bool get_ulong(char **str, unsigned long *u);
-
-static bool get_quoted_str(char **str, char **quoted_str);
 
 /*-------------------------------*/
 /*-------------------------------*/
@@ -63,7 +59,7 @@ task task_(unsigned long id, char *descript, unsigned long dur)
 
   /* verify input correctness
    * exits with error if the input is incorrect */
-  if (!verify_quoted_str(descript)) {
+  if (!verify_quoted_str(descript, DESCRIPT_BUFFER)) {
     return invalid_task();
   }
 
@@ -74,9 +70,6 @@ task task_(unsigned long id, char *descript, unsigned long dur)
   descript(a) = (char *) malloc((src_len + 1) * sizeof(char));
   strncpy(descript(a), descript, src_len + 1);
 
-  valid_early(a) = false;
-  valid_late(a) = false;
-
   return a;
 }
 
@@ -86,13 +79,14 @@ task task_(unsigned long id, char *descript, unsigned long dur)
  *
  * verifies correctess of the input string
  *   str: string to be verified
+ *   buffer_size: maximum size of the string
  *
  * return: true if str is correct; false otherwise
  *
  * str is said to be incorrect if it isn't delimited by quotes
  *                                or exceeds the buffer
  */
-static bool verify_quoted_str(char *str)
+static bool verify_quoted_str(char *str, size_t buffer_size)
 {
   size_t len;
 
@@ -100,7 +94,7 @@ static bool verify_quoted_str(char *str)
 
   len = strlen(str);
   
-  if (str[0] != '"' || str[len - 1] != '"' || len > DESCRIPT_BUFFER) 
+  if (str[0] != '"' || str[len - 1] != '"' || len > buffer_size) 
     return false;
 
   return true;
@@ -108,7 +102,7 @@ static bool verify_quoted_str(char *str)
 
 
 /*
- * function: free_task
+ * function: invalid_task
  *
  * return: invalid task
  */
@@ -147,18 +141,6 @@ bool valid_task(task a)
 }
 
 
-/* 
- * function: critical_task
- * 
- * input: task
- * verifies if the task is critical (early == late)
- */
-bool critical_task(task a)
-{
-  return (valid_early(a) && valid_late(a) && early(a) == late(a));
-}
-
-
 /*
  * function: change_task_description
  *
@@ -173,7 +155,8 @@ bool change_task_description(task *t, char *new_desc)
 {
   size_t src_len;
 
-  if (!verify_quoted_str(new_desc)) return false;
+  if (!verify_quoted_str(new_desc, DESCRIPT_BUFFER))
+    return false;
 
   src_len = strlen(new_desc);
   free(descript(*t));
@@ -196,70 +179,6 @@ bool change_task_duration(task *t, unsigned long new_dur)
 {
   dur(*t) = new_dur;
   return true;
-}
-
-
-/*
- * function: change_early
- *
- * modifier for the task datatype
- *   t: ptr to a task
- *   new_early: new early start
- *
- * turns the validation flag to true
- * returns true on a successful change
- */
-bool change_early(task *t, unsigned long new_early)
-{
-  early(*t) = new_early;
-  valid_early(*t) = true;
-  return true;
-}
-
-
-/*
- * function: change_late
- *
- * modifier for the task datatype
- *   t: ptr to a task
- *   new_late: new late start
- *
- * turns the validation flag to true
- * returns true on a successful change
- */
-bool change_late(task *t, unsigned long new_late)
-{
-  late(*t) = new_late;
-  valid_late(*t) = true;
-  return true;
-}
-
-
-/*
- * function: invalidate_early
- *
- * modifier for the task datatype
- *   t: ptr to a task
- *
- * turns the validation flag to false
- */
-void invalidate_early(task *t)
-{
-  valid_early(*t) = false;
-}
-
-
-/*
- * function: invalidate_late
- *
- * modifier for the task datatype
- *   t: ptr to a task
- *
- * turns the validation flag to false
- */
-void invalidate_late(task *t)
-{
-  valid_late(*t) = false;
 }
 
 
@@ -308,7 +227,7 @@ task get_task(char **str)
   task a;
 
   if (!get_ulong(str, &id) || 
-      !get_quoted_str(str, &desc) ||
+      !get_quoted_str(str, &desc, DESCRIPT_BUFFER) ||
       !get_ulong(str, &dur)) {
 
     free(desc);
@@ -319,60 +238,3 @@ task get_task(char **str)
   free(desc);
   return a;
 }
-
-
-/*
- * function: get_ulong
- *
- * gets an unsigned long from the first token in str
- *   str: pointer to a string
- *   u: pointer to an unsigned long, to be filled
- *
- * return: false on incorrect input
- */
-static bool get_ulong(char **str, unsigned long *u)
-{
-  char *token;
-  token = strtok(*str, " \n");
-
-  if (token == NULL || token[0] == '-' || sscanf(token, "%lu", u) != 1)  {
-    return false;
-  }
-
-  *str += strlen(token) + 1;
-  return true;
-}
-
-
-/*
- * function: get_quoted_str
- *
- * gets a string with the "<substr>" format
- *   str: pointer to string where the token is extracted
- *   quoted_str: pointer to string, to be filled
- *
- * return: false on incorrect input
- */
-static bool get_quoted_str(char **str, char **quoted_str)
-{
-  char *token, *aux;
-
-  /* find first and second occurences of '"' in string */
-  token = strchr(*str, '\"');
-  aux = strchr(token + 1, '\"');
-  
-  if (token == NULL || aux == NULL ||
-      strlen(aux) == 1 || !isspace(aux[1])) {
-    return false;
-  }
-
-  aux[1] = '\0';
-
-  *quoted_str = malloc((strlen(token) + 1) * sizeof(char));
-  strcpy(*quoted_str, token);
-
-  /* flush the string to after the quote and the terminator */
-  *str = aux + 2;
-  return true;
-}
-
