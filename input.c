@@ -85,7 +85,7 @@ bool get_ulong_list(char **str, unsigned long **list, size_t *n_elems)
   *n_elems = 0;
   *list = (unsigned long *) malloc(n_allocd * sizeof(unsigned long));
 
-  while (strlen(*str) >= 1) {
+  while (!empty_str(*str)) {
     if (!get_ulong(str, &u)) {
       free(*list);
       return false;          
@@ -109,7 +109,7 @@ bool get_ulong_list(char **str, unsigned long **list, size_t *n_elems)
  *
  * reads a line from stdinput
  * allocates memory exponentially to accomodate
- * doesn't include newline character
+ * includes the newline character
  *
  * return: string,
  *         NULL on EOF
@@ -137,6 +137,8 @@ char *get_line()
     return NULL;
   }
 
+  line[len++] = ' ';
+  line[len++] = '\n';
   line[len++] = '\0';
   line = (char *) realloc(line, len * sizeof(char));
   return line;
@@ -156,7 +158,7 @@ bool get_str(char **str, char **out_str)
 {
   char *token;
 
-  token = strtok(*str, " \n");
+  token = strtok(*str, " \t");
   
   if (token == NULL) return false;
 
@@ -174,10 +176,11 @@ bool get_str(char **str, char **out_str)
  * gets a string with the "<substr>" format
  *   str: pointer to string where the token is extracted
  *   out_str: pointer to string, to be filled
+ *   max_len: maximum size of the string, excluding the terminator
  *
- * return: false on incorrect input
+ * return: false on incorrect input or max_len exceeded
  */
-bool get_quoted_str(char **str, char **out_str)
+bool get_quoted_str(char **str, char **out_str, size_t max_len)
 {
   char *token, *aux;
 
@@ -191,6 +194,10 @@ bool get_quoted_str(char **str, char **out_str)
   }
 
   aux[1] = '\0';
+
+  /* check for size restriciton */
+  if (strlen(token) > max_len) 
+    return false;
 
   *out_str = malloc((strlen(token) + 1) * sizeof(char));
   strcpy(*out_str, token);
@@ -208,12 +215,18 @@ bool get_quoted_str(char **str, char **out_str)
  *   str: string to be checked
  *
  * return: false if there is a non-whitespace char
+ *         true in case of NULL string
  */
 bool empty_str(char *str)
 {
   size_t i = 0;
-  while (str[i] != '\0' && isspace(str[i])) 
-    i++;
 
-  return str[i] == '\0';
+  if (str == NULL)
+    return true;
+
+  while (str[i] != '\0' && isspace(str[i])) {
+    i++;
+  }
+
+  return str[i - 1] == '\n';
 }

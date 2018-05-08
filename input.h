@@ -27,7 +27,7 @@
 bool get_ulong(char **str, unsigned long *u);
 
 /* get a list of unsigned longs:
- * returns the list, the number of elements and the allocd memory*/
+ * returns the list and the number of elements */
 bool get_ulong_list(char **str, unsigned long **list, size_t *n_elems);
 
 /* get a line */
@@ -37,7 +37,7 @@ char *get_line();
 bool get_str(char **str, char **out_str);
 
 /* get a string delimited by quotes*/
-bool get_quoted_str(char **str, char **out_str);
+bool get_quoted_str(char **str, char **out_str, size_t max_len);
 
 /* check if a string is empty */
 bool empty_str(char *str);

@@ -26,6 +26,9 @@
 /* TODO: get a hold of the correct val */
 #define CMD_BUFFER 10000
 
+/* maximum size of a quoted string */
+#define MAX_QUOTED_STR 8000
+
 /* 
  * number of possible command
  * also the number of implemented functionallities, 
@@ -168,7 +171,7 @@ void add(char *cmd_str)
     cmd_str[0] = '\0';
     return;
   }
-  if (!get_quoted_str(&cmd_str, &description)) {
+  if (!get_quoted_str(&cmd_str, &description, MAX_QUOTED_STR)) {
     printf("illegal arguments\n");
     cmd_str[0] = '\0';
     return;
@@ -202,13 +205,14 @@ void add(char *cmd_str)
  */
 void duration(char *cmd_str)
 {
-  unsigned long dur;
+  unsigned long dur = 0;
 
   if (empty_str(cmd_str)) {
     list_task_duration(0);
   }
   else if (!get_ulong(&cmd_str, &dur) || !empty_str(cmd_str)) {
     printf("illegal arguments\n");
+    return;
   }
 
   list_task_duration(dur);
