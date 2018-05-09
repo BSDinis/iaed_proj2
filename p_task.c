@@ -13,6 +13,12 @@
 #define max(a, b) ((a > b) ? a : b)
 #define min(a, b) ((a < b) ? a : b)
 
+/* initial size allocated for the list of successors */
+#define INIT_SUCC_SIZE 32
+
+/* buffer a ulong (ULONG_MAX = 4294967295 -> 10 chars) */
+#define ULONG_BUFFER 10
+
 
 /*-------------------------------*/
 /* prototypes */
@@ -37,11 +43,11 @@ static p_task invalid_p_task();
  *
  * returns: p_task
  */
-p_task p_task_(task t, p_task *depends, size_t n_depends)
+p_task p_task_(task t, p_task **depends, size_t n_depends)
 {
   p_task a;
 
-  if (invalid_task(t)) 
+  if (!valid_task(t)) 
     return invalid_p_task();
 
   task(a) = t;
@@ -49,8 +55,8 @@ p_task p_task_(task t, p_task *depends, size_t n_depends)
   valid_late(a) = false;
   depends(a) = depends;
   n_depends(a) = (depends(a) == NULL) ? 0 : n_depends;
-  n_allocd(a) = INIT_SIZE;
-  successors(a) = (p_task *) malloc(n_allocd(a) * sizeof(p_task));
+  n_allocd(a) = INIT_SUCC_SIZE;
+  successors(a) = (p_task **) malloc(n_allocd(a) * sizeof(p_task *));
   n_succ(a) = 0;
 
   return a;
@@ -73,8 +79,10 @@ void free_p_task(p_task a)
 
 /* 
  * function: valid_p_task
- * 
- * input: p_task
+ *
+ * verifier for the p_task datatype
+ *   a: a p_task
+ *
  * verifies if the p_task is valid
  */
 bool valid_p_task(p_task a)
@@ -84,14 +92,110 @@ bool valid_p_task(p_task a)
 
 
 /* 
+ * function: terminal_p_task
+ *
+ * test for the p_task datatype
+ *   a: a p_task
+ *
+ * tests if the p_task is a terminal task (has no successors)
+ */
+bool terminal_p_task(p_task a)
+{
+  return n_succ(a) == 0;
+}
+
+
+/* 
+ * function: initial_p_task
+ *
+ * test for the p_task datatype
+ *   a: a p_task
+ *
+ * verifies if the p_task is valid
+ */
+bool initial_p_task(p_task a)
+{
+  return n_depends(a) == 0;
+}
+
+
+/* 
  * function: critical_p_task
- * 
- * input: p_task
- * verifies if the p_task is critical (early == late)
+ *
+ * test for the p_task datatype
+ *   a: a p_task
+ *
+ * tests if the p_task is a critial task
  */
 bool critical_p_task(p_task a)
 {
   return (valid_early(a) && valid_late(a) && early(a) == late(a));
+}
+
+
+/*
+ * function: add_successor
+ *
+ * modifier for the p_task datatype
+ * adds a successor to the p_task addressed by t
+ *   t: ptr to a p_task
+ *   new_successor: pointer to p_task, new successor
+ *
+ * doesn't perform any checks to whether that task is already listed as a 
+ * successor or not
+ *
+ * may have to realloc the list of successors: grows exponentially by a
+ * factor of 2
+ *
+ * return: false if any of the pointers is NULL
+ */
+bool add_successor(p_task *t, p_task *new_successor)
+{
+  if (t == NULL || new_successor == NULL) 
+    return false;
+
+  if (n_succ(*t) == n_allocd(*t)) {
+    n_allocd(*t) *= 2;
+    successors(*t) = 
+      (p_task **) realloc(successors(*t), n_allocd(*t) * sizeof(p_task *));
+  }
+
+  successors(*t)[n_succ(*t)++] = new_successor;
+  return true;
+}
+
+
+/*
+ * function: remove_dependency
+ *
+ * modifier for the p_task datatype
+ * removes a dependency from the p_task addressed by t
+ *   t: ptr to a p_task
+ *   depedency: pointer to p_task to be removed
+ *
+ * return: false if any of the pointers is NULL
+ */
+bool remove_dependency(p_task *t, p_task *dependency)
+{
+  size_t i, j;
+  bool removed = false;
+
+  if (t == NULL || dependency == NULL) 
+    return false;
+
+  for (i = 0, j = 0; i < n_depends(*t); i++) {
+    if (depends(*t)[i] != dependency) {
+      depends(*t)[j++] = depends(*t)[i];
+    }
+    else {
+      removed = true;
+    }
+  }
+
+  if (removed) 
+    n_depends(*t)--;
+
+  return true;
 }
 
 
@@ -164,24 +268,57 @@ void invalidate_late(p_task *t)
  *
  * external representation function for p_task datatype
  *   a: p_task
+ *   path_freshness: although the p_task may have its early and late starts
+ *     valid, the project may have an invalid type, which overwrites the
+ *     validity of the starts
  *
  * return: str with external representation of a p_task
  *
- * representation: <id> <description> <duration>
+ * representation: <task> [<early> <late>] <ids>
  */
-char *print_p_task(p_task a)
+char *print_p_task(p_task a, bool path_freshness)
 {
-  size_t len;
-  char *str;
+  char *str, *task_str, *early_late_str, *ids, *aux_buffer;
+  size_t str_size, early_late_size, ids_size;
+  size_t i;
+  bool print_early_late = path_freshness && valid_early(a) && valid_late(a);
 
-  /* note: 2 spaces between values */
-  len = 2 * ULONG_BUFFER + strlen(descript(a)) + 2;
-  str = malloc((len + 1) * sizeof(char));
+  task_str = print_task(task(a));
 
-  sprintf(str, "%lu %s %lu", id(a), descript(a), dur(a));
+  if (print_early_late) {
+    /* 2 ulongs + 2 spaces + 2 brackets */
+    early_late_size = 2 * ULONG_BUFFER + 4;
+    early_late_str = (char *) malloc ((early_late_size + 1) * sizeof(char));
+    if (critical_p_task(a)) 
+      sprintf(early_late_str, "[%lu CRITICAL] ", early(a));
+    else 
+      sprintf(early_late_str, "[%lu %lu] ", early(a), late(a));
+  }
+  else {
+    early_late_size = 0;
+    early_late_str = (char *) malloc ((early_late_size + 1) * sizeof(char));
+    strcpy(early_late_str, "");
+  }
+
+  /* n_depends ids and a space after except last one, which has the terminator */
+  ids_size = n_depends(a) * (ULONG_BUFFER + 1);
+  ids = (char *) malloc(ids_size * sizeof(char)); 
+  aux_buffer = (char *) malloc((ULONG_BUFFER + 2) * sizeof(char));
+  for (i = 0, strcpy(ids, ""); i < n_depends(a); i++) {
+    sprintf(aux_buffer, "%lu ", id( task( *(depends(a)[i])) ));
+    strcat(ids, aux_buffer);
+  }
+
+  str_size = strlen(task_str) + 1 + early_late_size + ids_size;
+  str = (char *) malloc((str_size + 1) * sizeof(char));
+  sprintf(str, "%s %s%s", task_str, early_late_str, ids);
+  free(task_str);
+  free(early_late_str);
+  free(aux_buffer);
+  free(ids);
   return str;
 }
-
+    
 
 /*
  * function: invalid_p_task

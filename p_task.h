@@ -46,13 +46,13 @@
  * (everytime a p_task 'a' lists another p_task 'b' as it's dependency,
  * 'b' adds 'a' to its list of successors)
  */
-typedef struct {
+typedef struct _p_task{
   task t;
   unsigned long early;
   unsigned long late;
   bool valid_early, valid_late;
-  p_task *depends, *successors;
-  size_t n_depends, n_succ, n_allocd
+  struct _p_task **depends, **successors;
+  size_t n_depends, n_succ, n_allocd;
 } p_task;
 
 /* selectors */
@@ -74,7 +74,7 @@ typedef struct {
  * early and late start invalid
  * successors is allocated with an initial size
  */
-p_task p_task_(task t, p_task *depends, size_t n_depends);
+p_task p_task_(task t, p_task **depends, size_t n_depends);
 
 /* destructor */
 void free_p_task(p_task a);
@@ -82,11 +82,17 @@ void free_p_task(p_task a);
 /* verifier */
 bool valid_p_task(p_task a);
 
-/* test */
+/* tests */
 bool critical_p_task(p_task a);
+
+bool terminal_p_task(p_task a);
+
+bool initial_p_task(p_task a);
 
 /* modifiers */
 bool add_successor(p_task *ptr, p_task *new_successor);
+
+bool remove_dependency(p_task *t, p_task *dependency);
 
 /* change_early and change_late make the valid flags true */
 bool change_early(p_task *t, unsigned long new_early);
@@ -95,6 +101,6 @@ void invalidate_early(p_task *t);
 void invalidate_late(p_task *t);
 
 /* external representation */
-char *print_p_task(p_task a);
+char *print_p_task(p_task a, bool path_freshness);
 
 #endif /* !P_TASK_H */
