@@ -50,6 +50,7 @@ static char *print_depends(p_task a);
 p_task p_task_(task t, p_task **depends, size_t n_depends)
 {
   p_task a;
+  size_t i;
 
   if (!valid_task(t)) 
     return invalid_p_task();
@@ -62,6 +63,12 @@ p_task p_task_(task t, p_task **depends, size_t n_depends)
   n_allocd(a) = INIT_SUCC_SIZE;
   successors(a) = (p_task **) malloc(n_allocd(a) * sizeof(p_task *));
   n_succ(a) = 0;
+
+  for (i = 0; i < n_depends(a); i++) {
+    if (!add_successor(depends(a)[i], &a)) {
+      printf("FATAL ERROR: add_successor failed, invalid arguments\n");
+    }
+  }
 
   return a;
 }
