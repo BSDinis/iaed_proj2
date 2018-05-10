@@ -26,6 +26,10 @@
 
 static p_task invalid_p_task();
 
+static char *print_early_late(p_task a, bool flag);
+
+static char *print_depends(p_task a);
+
 /*-------------------------------*/
 /*-------------------------------*/
 /*-------------------------------*/
@@ -278,47 +282,91 @@ void invalidate_late(p_task *t)
  */
 char *print_p_task(p_task a, bool path_freshness)
 {
-  char *str, *task_str, *early_late_str, *ids, *aux_buffer;
-  size_t str_size, early_late_size, ids_size;
-  size_t i;
-  bool print_early_late = path_freshness && valid_early(a) && valid_late(a);
+  char *str, *task_str, *early_late_str, *ids;
+  size_t len;
+  bool early_late = path_freshness && valid_early(a) && valid_late(a);
 
   task_str = print_task(task(a));
+  early_late_str = print_early_late(a, early_late);
+  ids = print_depends(a);
 
-  if (print_early_late) {
-    /* 2 ulongs + 2 spaces + 2 brackets */
-    early_late_size = 2 * ULONG_BUFFER + 4;
-    early_late_str = (char *) malloc ((early_late_size + 1) * sizeof(char));
-    if (critical_p_task(a)) 
-      sprintf(early_late_str, "[%lu CRITICAL] ", early(a));
-    else 
-      sprintf(early_late_str, "[%lu %lu] ", early(a), late(a));
-  }
-  else {
-    early_late_size = 0;
-    early_late_str = (char *) malloc ((early_late_size + 1) * sizeof(char));
-    strcpy(early_late_str, "");
-  }
 
-  /* n_depends ids and a space after except last one, which has the terminator */
-  ids_size = n_depends(a) * (ULONG_BUFFER + 1);
-  ids = (char *) malloc(ids_size * sizeof(char)); 
-  aux_buffer = (char *) malloc((ULONG_BUFFER + 2) * sizeof(char));
-  for (i = 0, strcpy(ids, ""); i < n_depends(a); i++) {
-    sprintf(aux_buffer, "%lu ", id( task( *(depends(a)[i])) ));
-    strcat(ids, aux_buffer);
-  }
-
-  str_size = strlen(task_str) + 1 + early_late_size + ids_size;
-  str = (char *) malloc((str_size + 1) * sizeof(char));
+  len = strlen(task_str) + 1 + strlen(early_late_str) + strlen(ids);
+  str = (char *) malloc((len + 1) * sizeof(char));
   sprintf(str, "%s %s%s", task_str, early_late_str, ids);
   free(task_str);
   free(early_late_str);
-  free(aux_buffer);
   free(ids);
   return str;
 }
     
+
+/*
+ * function: print_early_late
+ *
+ * prints the early_late component of the p_task represenation
+ *   a: a p_task
+ *   flag: bolean flag, that indicates wheter the early and late starts should
+ *     be printed
+ *
+ * return:
+ *   string with the format "[<early> <late>] " if the flag is true
+ */
+static char *print_early_late(p_task a, bool flag)
+{
+  size_t len;
+  char *str;
+
+  if (!flag) {
+    str = (char *) malloc(1 * sizeof(char));
+    str[0] = '\0';
+    return str;
+  }
+
+  /* 2 ulongs + 2 spaces + 2 brackets */
+  len = 2 * ULONG_BUFFER + 4;
+  str = (char *) malloc ((len + 1) * sizeof(char));
+  if (critical_p_task(a)) {
+    sprintf(str, "[%lu CRITICAL] ", early(a));
+  }
+  else {
+    sprintf(str, "[%lu %lu] ", early(a), late(a));
+  }
+
+  return str;
+}
+  
+
+/*
+ * function: print_depens
+ *
+ * prints the ids of the dependencies of a p_task
+ *   a: a p_task
+ *
+ * return:
+ *   string with the format "<id>*" 
+ */
+static char *print_depends(p_task a)
+{
+  char *str;
+  char *aux;
+  size_t len, i;
+
+  /* n_depends ids and a space after
+   * exception: last one, which has the terminator */
+  len = n_depends(a) * (ULONG_BUFFER + 1);
+
+  str = (char *) malloc(len * sizeof(char)); 
+  aux = (char *) malloc((ULONG_BUFFER + 2) * sizeof(char));
+
+  for (i = 0, strcpy(str, ""); i < n_depends(a); i++) {
+    sprintf(aux, "%lu ", id( task( *(depends(a)[i])) ));
+    strcat(str, aux);
+  }
+
+  free(aux);
+  return str;
+}
 
 /*
  * function: invalid_p_task
@@ -334,5 +382,4 @@ static p_task invalid_p_task()
   n_allocd(a) = 0;
   return a;
 }
-
 

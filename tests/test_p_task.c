@@ -30,6 +30,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include "../p_task.h"
+#include "../task.h"
 #include "../input.h"
 
 #define CMD_BUFFER 10000
@@ -44,50 +45,41 @@ int main()
   char *orig = str;
   char *aux; 
   p_task list[LIST_SIZE];
-  size_t i = 1;
+  size_t i = 0;
 
   while (fgets(str, CMD_BUFFER, stdin) != NULL) {
-    printf("::::TEST %lu:::::\n", i);
-    printf("%s -> ", str);
+    printf("::::TEST %lu:::::\n", i + 1);
+    printf("%s\n", str);
 
-    /*
-    t = get_task(&str);
-    printf("%s ", str);
+    list[i] = get_p_task(str, i, list);
 
-    if (!valid_task(t)) {
+    if (!valid_p_task(list[i])) {
       printf("illegal arguments\n");
       printf("\n\n");
       i++;
-      free_task(t);
+      return 1;
       continue;
     }
 
-    aux = print_task(t);
-    printf("orig: %s ||", aux);
+    aux = print_p_task(list[i], false);
+    printf("without path: %s \n", aux);
     free(aux);
 
-    change_task_duration(&t, id(t));
-    change_task_description(&t, "\"i am a dummy description\"");
+    if (valid_early(list[i]) && valid_late(list[i])) 
+      printf("%lu : %lu\n", early(list[i]), late(list[i]));
 
-    aux = print_task(t);
-    printf("changed: %s\n", aux);
+    change_early(&list[i], 2 * i);
+    change_late(&list[i], i * i);
+
+    aux = print_p_task(list[i], true);
+    printf("with path: %s \n", aux);
     free(aux);
-
-    if (valid_early(t) && valid_late(t)) 
-      printf("%lu : %lu\n", early(t), late(t));
-
-    change_early(&t, 2224);
-    change_late(&t, 2224);
-
-    if (valid_early(t) && valid_late(t)) 
-      printf("%lu : %lu\n", early(t), late(t));
 
     printf("\n\n");
     i++;
-    free_task(t);
-    */
   }
 
+  for(i = 0; i < LIST_SIZE; free_p_task(list[i++]));
   free(orig);
   return 0;
 }
@@ -101,22 +93,17 @@ p_task get_p_task(char *cmd_str, int i, p_task list[LIST_SIZE])
   p_task t; 
   p_task **depen = (p_task **) malloc(i * sizeof(p_task *));
 
-  if (!get_quoted_str(&cmd_str, &description, MAX_QUOTED_STR)) {
-    printf("illegal arguments\n");
-    cmd_str[0] = '\0';
-    return t;
-  }
-  if (!get_ulong(&cmd_str, &dur)) {
-    printf("illegal arguments\n");
-    cmd_str[0] = '\0';
-    free(description);
-    return t;
-  }
-
+  get_quoted_str(&cmd_str, &description, MAX_QUOTED_STR);
+  get_ulong(&cmd_str, &dur);
   for (j = 0; j < i; depen[j] = &(list[j]), j++);
 
   t = p_task_(task_(i, description, dur), depen, i);
   free(description);
+
+  description = print_task(task(t));
+  printf("task: %s\n", description);
+  free(description);
+
   free(depen);
   return t;
 }
