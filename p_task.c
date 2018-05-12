@@ -58,13 +58,14 @@ p_task p_task_(task t, p_task **depends, size_t n_depends)
   task(a) = t;
   valid_early(a) = false;
   valid_late(a) = false;
-  depends(a) = depends;
-  n_depends(a) = (depends(a) == NULL) ? 0 : n_depends;
+  n_depends(a) = n_depends;
+  depends(a) = (p_task **) malloc(n_depends(a) * sizeof(p_task *));
   n_allocd(a) = INIT_SUCC_SIZE;
   successors(a) = (p_task **) malloc(n_allocd(a) * sizeof(p_task *));
   n_succ(a) = 0;
 
   for (i = 0; i < n_depends(a); i++) {
+    depends(a)[i] = depends[i];
     if (!add_successor(depends(a)[i], &a)) {
       printf("FATAL ERROR: add_successor failed, invalid arguments\n");
     }
@@ -363,15 +364,21 @@ static char *print_depends(p_task a)
    * exception: last one, which has the terminator */
   len = n_depends(a) * (ULONG_BUFFER + 1);
 
-  str = (char *) malloc(len * sizeof(char)); 
-  aux = (char *) malloc((ULONG_BUFFER + 2) * sizeof(char));
+  if (len == 0) {
+    str = (char *) malloc(1 * sizeof(char));
+    str[0] = '\0';
+  }
+  else {
+    str = (char *) malloc(len * sizeof(char)); 
+    aux = (char *) malloc((ULONG_BUFFER + 2) * sizeof(char));
 
-  for (i = 0, strcpy(str, ""); i < n_depends(a); i++) {
-    sprintf(aux, "%lu ", id( task( *(depends(a)[i])) ));
-    strcat(str, aux);
+    for (i = 0, strcpy(str, ""); i < n_depends(a); i++) {
+      sprintf(aux, "%lu ", id( task( *(depends(a)[i])) ));
+      strcat(str, aux);
+    }
+    free(aux);
   }
 
-  free(aux);
   return str;
 }
 
