@@ -76,6 +76,10 @@ typedef struct _p_task{
  */
 p_task p_task_(task t, p_task **depends, size_t n_depends);
 
+/* duplicator
+ * creates an identical copy of a p_task */
+p_task p_task_dup(p_task orig);
+
 /* destructor */
 void free_p_task(p_task a);
 

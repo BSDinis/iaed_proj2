@@ -55,11 +55,14 @@ p_task p_task_(task t, p_task **depends, size_t n_depends)
   if (!valid_task(t)) 
     return invalid_p_task();
 
-  task(a) = t;
+  task(a) = task_dup(t);
+
   valid_early(a) = false;
   valid_late(a) = false;
+
   n_depends(a) = n_depends;
   depends(a) = (p_task **) malloc(n_depends(a) * sizeof(p_task *));
+
   n_allocd(a) = INIT_SUCC_SIZE;
   successors(a) = (p_task **) malloc(n_allocd(a) * sizeof(p_task *));
   n_succ(a) = 0;
@@ -68,11 +71,58 @@ p_task p_task_(task t, p_task **depends, size_t n_depends)
     depends(a)[i] = depends[i];
     if (!add_successor(depends(a)[i], &a)) {
       printf("FATAL ERROR: add_successor failed, invalid arguments\n");
+      exit(1);
     }
   }
 
   return a;
 }
+
+
+/* 
+ * function: p_task_dup
+ *
+ * duplicator for the p_task datatype
+ *   orig: original p_task
+ *
+ * returns: p_task
+ */
+p_task p_task_dup(p_task orig)
+{
+  p_task new;
+  size_t i;
+
+  if (!valid_p_task(orig)) {
+    return invalid_p_task();
+  }
+
+  task(new) = task_dup(task(orig));
+
+  valid_early(new) = valid_early(orig);
+  valid_late(new) = valid_late(orig);
+
+  if (valid_early(new)) 
+    early(new) = early(orig);
+
+  if (valid_late(new)) 
+    late(new) = late(orig);
+
+  n_depends(new) = n_depends(orig);
+  n_allocd(new) = n_allocd(orig);
+  n_succ(new) = n_succ(orig);
+
+  depends(new) = (p_task **) malloc(n_depends(new) * sizeof(p_task *));
+  successors(new) = (p_task **) malloc(n_allocd(new) * sizeof(p_task *));
+  
+  for (i = 0; i < n_depends(new); i++)
+    depends(new)[i] = depends(orig)[i];
+
+  for (i = 0; i < n_succ(new); i++)
+    successors(new)[i] = successors(orig)[i];
+
+  return new;
+}
+
 
 /*
  * function: free_p_task
