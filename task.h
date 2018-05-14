@@ -52,6 +52,11 @@ typedef struct {
  */
 task task_(unsigned long id, char *descript, unsigned long dur);
 
+/* duplicator
+ * creates a copy of a task
+ */
+task task_dup(task orig);
+
 /* destructor */
 void free_task(task a);
 

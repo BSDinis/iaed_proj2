@@ -43,7 +43,7 @@ static task invalid_task();
  *   descript: task description, enclosed in quotes
  *   dur: task duration, must be 32-bit positive integer
  *
- * returns: task
+ * return: task
  *
  * if an error is detected in the input, return error in the
  * description string: the string is saved as "_error_" 
@@ -71,6 +71,20 @@ task task_(unsigned long id, char *descript, unsigned long dur)
   strncpy(descript(a), descript, src_len + 1);
 
   return a;
+}
+
+
+/* 
+ * function: task_dup
+ *
+ * duplicator for the task datatype
+ *    orig: original task
+ *
+ * return: copy of orig
+ */
+task task_dup(task orig)
+{
+  return task_(id(orig), descript(orig), dur(orig));
 }
 
 
