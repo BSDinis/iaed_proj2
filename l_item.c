@@ -16,13 +16,25 @@
 
 #include "l_item.h"
 
-
+/*
+ * function: get_key
+ *   l: l_item
+ *
+ * return: l_items' key
+ */
 unsigned long get_key(l_item l)
 {
-  return id(task(l));
+  return id(*task(*l));
 }
 
+/*
+ * function: free_l_item
+ *
+ * frees an l_item
+ *   l: l_item
+ */
 void free_l_item(l_item l)
 {
   free_p_task(l);
+  free(l);
 }

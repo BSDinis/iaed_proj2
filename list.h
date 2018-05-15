@@ -37,7 +37,7 @@ typedef struct _l_node {
 
 /* doubly linked list */
 typedef struct {
-  l_node head, tail;
+  l_node *head, *tail;
 } lnkd_list;
 
 /* selectors */
@@ -45,35 +45,35 @@ typedef struct {
 #define tail(a) ((a).tail)
 
 /* initialize l_node */
-l_node l_node_(l_item val, l_node *prev, l_node *next);
+l_node *l_node_(l_item val, l_node *prev, l_node *next);
 
 /* tests: test if a node is head or tail */
-bool is_head(l_node n);
-bool is_tail(l_node n);
+bool is_head(l_node *n);
+bool is_tail(l_node *n);
 
 /* goes to the next node: a verification if the node is a tail is needed */
-l_node go_next(l_node n);
+l_node *go_next(l_node *n);
 
 /* goes to the prev node: a verification if the node is a head is needed */
-l_node go_prev(l_node n);
+l_node *go_prev(l_node *n);
 
 /* insert l_node after: returns false if src is tail */
-bool insert_l_node_after(l_node *src, l_node *new_node);
+bool insert_l_node_after(l_node *src, l_item val);
 
 /* insert l_node before: returns false if src is head */
-bool insert_l_node_before(l_node *src, l_node *new_node);
+bool insert_l_node_before(l_node *src, l_item val);
 
 /* remove l_node: returns false if src is head or tail */
 bool remove_l_node(l_node *src);
 
 /* free the memory allocated for a node */
-void free_l_node(l_node n);
+void free_l_node(l_node *n);
 
 /* initialize list */
-lnkd_list lnkd_list_();
+lnkd_list *lnkd_list_();
 
 /* check if a list is empty */
-bool empty_list(lnkd_list a);
+bool empty_list(lnkd_list *a);
 
 /* add an element at the beginning of the linked list */
 void add_at_beginning(lnkd_list *l, l_item val);
@@ -82,6 +82,6 @@ void add_at_beginning(lnkd_list *l, l_item val);
 void add_at_end(lnkd_list *l, l_item val);
 
 /* free a list (and all its elements) */
-void free_lnkd_list(lnkd_list l);
+void free_lnkd_list(lnkd_list *l);
 
 #endif /* !LNKD_LIST_H */

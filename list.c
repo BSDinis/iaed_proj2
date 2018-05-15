@@ -29,14 +29,14 @@
  *   prev: ptr to preceding node
  *   next: ptr to the next node
  *
- * return: l_node
+ * return: ptr to l_node
  */
-l_node l_node_(l_item val, l_node *prev, l_node *next)
+l_node *l_node_(l_item val, l_node *prev, l_node *next)
 {
-  l_node n;
-  val(n) = val;
-  prev(n) = prev;
-  next(n) = next;
+  l_node *n = (l_node *) malloc(sizeof(l_node));
+  val(*n) = val;
+  prev(*n) = prev;
+  next(*n) = next;
   return n;
 }
 
@@ -45,13 +45,13 @@ l_node l_node_(l_item val, l_node *prev, l_node *next)
  * function: is_head
  *
  * checks if a node is a head of a linked list
- *   n: node
+ *   n: ptr to node
  *
  * return: true if n is head
  */
-bool is_head(l_node n)
+bool is_head(l_node *n)
 {
-  return prev(n) == NULL;
+  return prev(*n) == NULL;
 }
 
 
@@ -63,9 +63,9 @@ bool is_head(l_node n)
  *
  * return: true if n is tail
  */
-bool is_tail(l_node n)
+bool is_tail(l_node *n)
 {
-  return next(n) == NULL;
+  return next(*n) == NULL;
 }
 
 
@@ -78,9 +78,9 @@ bool is_tail(l_node n)
  * return: next node
  *   if the node is a tail, return itself
  */
-l_node go_next(l_node n)
+l_node *go_next(l_node *n)
 {
-  return (next(n) == NULL) ? n : *(next(n));
+  return (next(*n) == NULL) ? n : next(*n);
 }
 
 /*
@@ -92,9 +92,9 @@ l_node go_next(l_node n)
  * return: next node
  *   if the node is a head, return itself
  */
-l_node go_prev(l_node n)
+l_node *go_prev(l_node *n)
 {
-  return (prev(n) == NULL) ? n : *(prev(n));
+  return (prev(*n) == NULL) ? n : prev(*n);
 }
 
 /* 
@@ -102,17 +102,19 @@ l_node go_prev(l_node n)
  *
  * inserts a node after the src
  *   src: ptr to node  
- *   new_node: ptr to node to be inserted
+ *   val: value of the node to be inserted
  *
  * return: false if the src is a tail
  */
-bool insert_l_node_after(l_node *src, l_node *new_node)
+bool insert_l_node_after(l_node *src, l_item val)
 {
-  if (is_tail(*src)) 
+  l_node *new_node;
+
+  if (is_tail(src)) 
     return false;
 
-  next(*new_node) = next(*src);
-  prev(*new_node) = src;
+  new_node = l_node_(val, src, next(*src));
+
   next(*src) = new_node;
   prev(*next(*new_node)) = new_node;
 
@@ -129,13 +131,15 @@ bool insert_l_node_after(l_node *src, l_node *new_node)
  *
  * return: false if the src is a head
  */
-bool insert_l_node_before(l_node *src, l_node *new_node)
+bool insert_l_node_before(l_node *src, l_item val)
 {
-  if (is_head(*src))
+  l_node *new_node;
+
+  if (is_head(src))
     return false;
 
-  prev(*new_node) = prev(*src);
-  next(*new_node) = src;
+  new_node = l_node_(val, prev(*src), src);
+
   prev(*src) = new_node;
   next(*prev(*new_node)) = new_node;
 
@@ -153,13 +157,13 @@ bool insert_l_node_before(l_node *src, l_node *new_node)
  */
 bool remove_l_node(l_node *src)
 {
-  if (is_head(*src) || is_tail(*src)) 
+  if (is_head(src) || is_tail(src)) 
     return false;
 
   next(*prev(*src)) = next(*src);
   prev(*next(*src)) = prev(*src);
 
-  free_l_node(*src);
+  free_l_node(src);
   free(src);
 
   return true;
@@ -170,11 +174,11 @@ bool remove_l_node(l_node *src)
  * function: remove_l_node
  *
  * free the memory allocated for a node 
- *   n: node
+ *   n: ptr to node
  */
-void free_l_node(l_node n)
+void free_l_node(l_node *n)
 {
-  free_l_item(val(n));
+  free_l_item(val(*n));
 }
 
 
@@ -182,18 +186,21 @@ void free_l_node(l_node n)
  * function: lnkd_list_
  *
  * constructor for lnkd_list
- * creates a new, empty, linked list 
+ * initializes a linked list
+ *   l: ptr to lnkd_list
  *
- * return: lnkd_list
  */
-lnkd_list lnkd_list_()
+lnkd_list *lnkd_list_()
 {
-  lnkd_list l;
+  lnkd_list *l = (lnkd_list *) malloc(sizeof(lnkd_list));
 
-  next(head(l)) = &tail(l);
-  prev(tail(l)) = &head(l);
+  head(*l) = (l_node *) malloc(sizeof(l_node));
+  tail(*l) = (l_node *) malloc(sizeof(l_node));
 
-  prev(head(l)) = next(tail(l)) = NULL;
+  next(*head(*l)) = tail(*l);
+  prev(*tail(*l)) = head(*l);
+
+  prev(*head(*l)) = next(*tail(*l)) = NULL;
 
   return l;
 }
@@ -207,9 +214,9 @@ lnkd_list lnkd_list_()
  *
  * return: true if the list is empty
  */
-bool empty_list(lnkd_list l)
+bool empty_list(lnkd_list *l)
 {
-  return is_tail(*(next(head(l))));
+  return is_tail( next(*head(*l)) );
 }
 
 
@@ -222,8 +229,7 @@ bool empty_list(lnkd_list l)
  */
 void add_at_beginning(lnkd_list *l, l_item val)
 {
-  l_node n = l_node_(val, NULL, NULL);
-  insert_l_node_after(&head(*l), &n);
+  insert_l_node_after(head(*l), val);
 }
 
 
@@ -236,8 +242,7 @@ void add_at_beginning(lnkd_list *l, l_item val)
  */
 void add_at_end(lnkd_list *l, l_item val)
 {
-  l_node n = l_node_(val, NULL, NULL);
-  insert_l_node_before(&tail(*l), &n);
+  insert_l_node_before(tail(*l), val);
 }
 
 
@@ -247,15 +252,20 @@ void add_at_end(lnkd_list *l, l_item val)
  * frees a list (and all its elements) 
  *   l: list
  */
-void free_lnkd_list(lnkd_list l)
+void free_lnkd_list(lnkd_list *l)
 {
-  l_node n;
-  l_node *ptr;
+  l_node *n;
 
-  n = *next(head(l));
+  n = next(*next(*head(*l)));
   while (!is_tail(n)) {
-    ptr = next(n);
-    free_l_node(n);
-    n = *ptr;
+    free_l_node(prev(*n));
+    free(prev(*n));
+    n = go_next(n);
   }
+
+  free_l_node(prev(*tail(*l)));
+  free(prev(*tail(*l)));
+  free(head(*l));
+  free(tail(*l));
+  free(l);
 }

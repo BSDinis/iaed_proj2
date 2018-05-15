@@ -24,11 +24,9 @@
 /* prototypes */
 /*-------------------------------*/
 
-static p_task invalid_p_task();
+static char *print_early_late(p_task *a, bool flag);
 
-static char *print_early_late(p_task a, bool flag);
-
-static char *print_depends(p_task a);
+static char *print_depends(p_task *a);
 
 /*-------------------------------*/
 /*-------------------------------*/
@@ -43,33 +41,34 @@ static char *print_depends(p_task a);
  *   depends: list of pointers to p_tasks
  *   n_depends: size of depends
  *
- * if the task is invalid, generate an invalid p_task (n_succ > n_allocd)
+ * if the task is invalid, return NULL
  *
  * returns: p_task
  */
-p_task p_task_(task t, p_task **depends, size_t n_depends)
+p_task *p_task_(task *t, p_task **depends, size_t n_depends)
 {
-  p_task a;
+  p_task *a;
   size_t i;
 
   if (!valid_task(t)) 
-    return invalid_p_task();
+    return NULL;
+              
+  a = (p_task *) malloc(sizeof(p_task));
+  task(*a) = t;
 
-  task(a) = task_dup(t);
+  valid_early(*a) = false;
+  valid_late(*a) = false;
 
-  valid_early(a) = false;
-  valid_late(a) = false;
+  n_depends(*a) = n_depends;
+  depends(*a) = (p_task **) malloc(n_depends(*a) * sizeof(p_task *));
 
-  n_depends(a) = n_depends;
-  depends(a) = (p_task **) malloc(n_depends(a) * sizeof(p_task *));
+  n_allocd(*a) = INIT_SUCC_SIZE;
+  successors(*a) = (p_task **) malloc(n_allocd(*a) * sizeof(p_task *));
+  n_succ(*a) = 0;
 
-  n_allocd(a) = INIT_SUCC_SIZE;
-  successors(a) = (p_task **) malloc(n_allocd(a) * sizeof(p_task *));
-  n_succ(a) = 0;
-
-  for (i = 0; i < n_depends(a); i++) {
-    depends(a)[i] = depends[i];
-    if (!add_successor(depends(a)[i], &a)) {
+  for (i = 0; i < n_depends(*a); i++) {
+    depends(*a)[i] = depends[i];
+    if (!add_successor(depends(*a)[i], a)) {
       printf("FATAL ERROR: add_successor failed, invalid arguments\n");
       exit(1);
     }
@@ -78,78 +77,35 @@ p_task p_task_(task t, p_task **depends, size_t n_depends)
   return a;
 }
 
-
-/* 
- * function: p_task_dup
- *
- * duplicator for the p_task datatype
- *   orig: original p_task
- *
- * returns: p_task
- */
-p_task p_task_dup(p_task orig)
-{
-  p_task new;
-  size_t i;
-
-  if (!valid_p_task(orig)) {
-    return invalid_p_task();
-  }
-
-  task(new) = task_dup(task(orig));
-
-  valid_early(new) = valid_early(orig);
-  valid_late(new) = valid_late(orig);
-
-  if (valid_early(new)) 
-    early(new) = early(orig);
-
-  if (valid_late(new)) 
-    late(new) = late(orig);
-
-  n_depends(new) = n_depends(orig);
-  n_allocd(new) = n_allocd(orig);
-  n_succ(new) = n_succ(orig);
-
-  depends(new) = (p_task **) malloc(n_depends(new) * sizeof(p_task *));
-  successors(new) = (p_task **) malloc(n_allocd(new) * sizeof(p_task *));
-  
-  for (i = 0; i < n_depends(new); i++)
-    depends(new)[i] = depends(orig)[i];
-
-  for (i = 0; i < n_succ(new); i++)
-    successors(new)[i] = successors(orig)[i];
-
-  return new;
-}
-
-
 /*
  * function: free_p_task
  *
  * destructor for the p_task datatype
- *   a: p_task
+ *   a: ptr to p_task
  *
  * frees p_task a
  */
-void free_p_task(p_task a)
+void free_p_task(p_task *a)
 {
-  free_task(task(a));
-  free(depends(a));
-  free(successors(a));
+  if (valid_p_task(a)) {
+    free_task(task(*a));
+    free(task(*a));
+    free(depends(*a));
+    free(successors(*a));
+  }
 }
 
 /* 
  * function: valid_p_task
  *
  * verifier for the p_task datatype
- *   a: a p_task
+ *   a: ptr to p_task
  *
  * verifies if the p_task is valid
  */
-bool valid_p_task(p_task a)
+bool valid_p_task(p_task *a)
 {
-  return n_succ(a) <= n_allocd(a);
+  return a != NULL;
 }
 
 
@@ -157,13 +113,13 @@ bool valid_p_task(p_task a)
  * function: terminal_p_task
  *
  * test for the p_task datatype
- *   a: a p_task
+ *   a: ptr to p_task
  *
  * tests if the p_task is a terminal task (has no successors)
  */
-bool terminal_p_task(p_task a)
+bool terminal_p_task(p_task *a)
 {
-  return n_succ(a) == 0;
+  return n_succ(*a) == 0;
 }
 
 
@@ -171,13 +127,13 @@ bool terminal_p_task(p_task a)
  * function: initial_p_task
  *
  * test for the p_task datatype
- *   a: a p_task
+ *   a: ptr to p_task
  *
  * verifies if the p_task is valid
  */
-bool initial_p_task(p_task a)
+bool initial_p_task(p_task *a)
 {
-  return n_depends(a) == 0;
+  return n_depends(*a) == 0;
 }
 
 
@@ -185,13 +141,13 @@ bool initial_p_task(p_task a)
  * function: critical_p_task
  *
  * test for the p_task datatype
- *   a: a p_task
+ *   a: ptr to p_task
  *
  * tests if the p_task is a critial task
  */
-bool critical_p_task(p_task a)
+bool critical_p_task(p_task *a)
 {
-  return (valid_early(a) && valid_late(a) && early(a) == late(a));
+  return (valid_early(*a) && valid_late(*a) && early(*a) == late(*a));
 }
 
 
@@ -223,6 +179,7 @@ bool add_successor(p_task *t, p_task *new_successor)
   }
 
   successors(*t)[n_succ(*t)++] = new_successor;
+
   return true;
 }
 
@@ -329,7 +286,7 @@ void invalidate_late(p_task *t)
  * function: print_p_task
  *
  * external representation function for p_task datatype
- *   a: p_task
+ *   a: ptr to p_task
  *   path_freshness: although the p_task may have its early and late starts
  *     valid, the project may have an invalid type, which overwrites the
  *     validity of the starts
@@ -338,13 +295,13 @@ void invalidate_late(p_task *t)
  *
  * representation: <task> [<early> <late>] <ids>
  */
-char *print_p_task(p_task a, bool path_freshness)
+char *print_p_task(p_task *a, bool flag)
 {
   char *str, *task_str, *early_late_str, *ids;
   size_t len;
-  bool early_late = path_freshness && valid_early(a) && valid_late(a);
+  bool early_late = flag && valid_early(*a) && valid_late(*a);
 
-  task_str = print_task(task(a));
+  task_str = print_task(task(*a));
   early_late_str = print_early_late(a, early_late);
   ids = print_depends(a);
 
@@ -363,14 +320,14 @@ char *print_p_task(p_task a, bool path_freshness)
  * function: print_early_late
  *
  * prints the early_late component of the p_task represenation
- *   a: a p_task
+ *   a: ptr to p_task
  *   flag: bolean flag, that indicates wheter the early and late starts should
  *     be printed
  *
  * return:
  *   string with the format "[<early> <late>] " if the flag is true
  */
-static char *print_early_late(p_task a, bool flag)
+static char *print_early_late(p_task *a, bool flag)
 {
   size_t len;
   char *str;
@@ -385,10 +342,10 @@ static char *print_early_late(p_task a, bool flag)
   len = 2 * ULONG_BUFFER + 4;
   str = (char *) malloc ((len + 1) * sizeof(char));
   if (critical_p_task(a)) {
-    sprintf(str, "[%lu CRITICAL] ", early(a));
+    sprintf(str, "[%lu CRITICAL] ", early(*a));
   }
   else {
-    sprintf(str, "[%lu %lu] ", early(a), late(a));
+    sprintf(str, "[%lu %lu] ", early(*a), late(*a));
   }
 
   return str;
@@ -399,12 +356,12 @@ static char *print_early_late(p_task a, bool flag)
  * function: print_depens
  *
  * prints the ids of the dependencies of a p_task
- *   a: a p_task
+ *   a: ptr to p_task
  *
  * return:
  *   string with the format "<id>*" 
  */
-static char *print_depends(p_task a)
+static char *print_depends(p_task *a)
 {
   char *str;
   char *aux;
@@ -412,7 +369,7 @@ static char *print_depends(p_task a)
 
   /* n_depends ids and a space after
    * exception: last one, which has the terminator */
-  len = n_depends(a) * (ULONG_BUFFER + 1);
+  len = n_depends(*a) * (ULONG_BUFFER + 1);
 
   if (len == 0) {
     str = (char *) malloc(1 * sizeof(char));
@@ -422,28 +379,13 @@ static char *print_depends(p_task a)
     str = (char *) malloc(len * sizeof(char)); 
     aux = (char *) malloc((ULONG_BUFFER + 2) * sizeof(char));
 
-    for (i = 0, strcpy(str, ""); i < n_depends(a); i++) {
-      sprintf(aux, "%lu ", id( task( *(depends(a)[i])) ));
+    for (i = 0, strcpy(str, ""); i < n_depends(*a); i++) {
+      sprintf(aux, "%lu ", id( *task( *(depends(*a)[i]) ) ));
       strcat(str, aux);
     }
     free(aux);
   }
 
   return str;
-}
-
-/*
- * function: invalid_p_task
- *
- * return: invalid p_task 
- * (a p_task whose number of successors is larger than the size allocd for the 
- * successors list)
- */
-static p_task invalid_p_task()
-{
-  p_task a;
-  n_succ(a) = 1;
-  n_allocd(a) = 0;
-  return a;
 }
 

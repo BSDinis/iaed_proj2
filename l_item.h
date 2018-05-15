@@ -23,7 +23,7 @@
 
 #include "p_task.h"
 
-typedef p_task l_item;
+typedef p_task * l_item;
 
 unsigned long get_key(l_item l);
 

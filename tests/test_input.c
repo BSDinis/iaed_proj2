@@ -20,6 +20,7 @@
 #include "../input.h"
 
 #define CMD_BUFFER 10000
+#define STR_BUFFER 8000
 
 int main()
 {
@@ -28,9 +29,7 @@ int main()
   char *str1, *str2;
   unsigned long u, *list;
   size_t len;
-  size_t allocd;
   int i = 1;
-  int j;
   list = NULL;
 
   while (fgets(str, CMD_BUFFER, stdin) != NULL) {
@@ -46,12 +45,12 @@ int main()
       goto cleanup1;
     }
 
-    if (!get_quoted_str(&str, &str2)) {
+    if (!get_quoted_str(&str, &str2, STR_BUFFER)) {
       printf("error getting str2: continuing");
       goto cleanup2;
     }
 
-    if (!get_ulong_list(&str, &list, &len, &allocd)) {
+    if (!get_ulong_list(&str, &list, &len)) {
       printf("error getting ulong list: continuing");
       goto cleanup3;
     }
@@ -59,8 +58,6 @@ int main()
     printf("str1: %s\n", str1);
     printf("str2: %s\n", str2);
     printf("ulong: %lu\n", u);
-    for (j = 0; j < len; printf("%lu ", list[j++]));
-    printf("\nfilled %lu of %lu allocd positions\n", len, allocd);
     
 cleanup3:
     free(list);

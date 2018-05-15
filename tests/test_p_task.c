@@ -36,20 +36,23 @@
 
 int main()
 {
-  p_task list[LIST_SIZE];
+  p_task *list[LIST_SIZE];
   char *str;
   size_t i;
-  task t[LIST_SIZE];
+  task *t;
   char *aux = (char *) malloc(14 * sizeof(char));
   p_task **depends = malloc(LIST_SIZE * sizeof(p_task *));
   strcpy(aux, "\"dummy task\"");
 
   for (i = 0; i < LIST_SIZE; i++) {
-    t[i] = task_(i + 1, aux, i*2 + 1);
-    list[i] = p_task_(t[i], depends, i);
-    change_early(&(list[i]), 2*i);
-    change_late(&(list[i]), i*i);
-    depends[i] = &(list[i]);
+    t = task_(i + 1, aux, i*2 + 1);
+    list[i] = p_task_(t, depends, i);
+
+    change_early(list[i], 2*i);
+    change_late(list[i], i*i);
+
+    depends[i] = list[i];
+
     str = print_p_task(list[i], false);
     printf("p_task %lu: %s\n", i + 1, str);
     free(str);
@@ -65,6 +68,7 @@ int main()
 
   for (i = 0; i < LIST_SIZE; i++) {
     free_p_task(list[i]);
+    free(list[i]);
   }
 
 

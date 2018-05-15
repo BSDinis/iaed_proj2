@@ -47,7 +47,7 @@
  * 'b' adds 'a' to its list of successors)
  */
 typedef struct _p_task{
-  task t;
+  task *t;
   unsigned long early;
   unsigned long late;
   bool valid_early, valid_late;
@@ -68,30 +68,26 @@ typedef struct _p_task{
 #define n_allocd(a) ((a).n_allocd)
 
 /* constructor
- * returns a p_task with the parameters if they are correct
+ * returns a ptr to p_task with the parameters if they are correct
  * returns an invalid p_task otherwise
  *
  * early and late start invalid
  * successors is allocated with an initial size
  */
-p_task p_task_(task t, p_task **depends, size_t n_depends);
-
-/* duplicator
- * creates an identical copy of a p_task */
-p_task p_task_dup(p_task orig);
+p_task *p_task_(task *t, p_task **depends, size_t n_depends);
 
 /* destructor */
-void free_p_task(p_task a);
+void free_p_task(p_task *a);
 
 /* verifier */
-bool valid_p_task(p_task a);
+bool valid_p_task(p_task *a);
 
 /* tests */
-bool critical_p_task(p_task a);
+bool critical_p_task(p_task *a);
 
-bool terminal_p_task(p_task a);
+bool terminal_p_task(p_task *a);
 
-bool initial_p_task(p_task a);
+bool initial_p_task(p_task *a);
 
 /* modifiers */
 bool add_successor(p_task *ptr, p_task *new_successor);
@@ -105,6 +101,6 @@ void invalidate_early(p_task *t);
 void invalidate_late(p_task *t);
 
 /* external representation */
-char *print_p_task(p_task a, bool path_freshness);
+char *print_p_task(p_task *a, bool flag);
 
 #endif /* !P_TASK_H */
