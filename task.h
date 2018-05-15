@@ -47,32 +47,22 @@ typedef struct {
 #define dur(a) ((a).dur)
 
 /* constructor
- * returns a task with the parameters if they are correct
+ * returns a ptr to a task with the parameters if they are correct
  * returns an invalid task otherwise
  */
-task task_(unsigned long id, char *descript, unsigned long dur);
-
-/* duplicator
- * creates a copy of a task
- */
-task task_dup(task orig);
+task *task_(unsigned long id, char *descript, unsigned long dur);
 
 /* destructor */
-void free_task(task a);
+void free_task(task *a);
 
 /* verifier */
-bool valid_task(task a);
+bool valid_task(task *a);
 
 /* modifiers */
-
 bool change_task_description(task *t, char *new_desc);
 bool change_task_duration(task *t, unsigned long new_dur);
 
-
 /* external representation */
-char *print_task(task a);
-
-/* get task from string */
-task get_task(char **str);
+char *print_task(task *a);
 
 #endif /* !TASK_H */

@@ -34,23 +34,22 @@
 
 int main()
 {
-  char *str = (char *) malloc((CMD_BUFFER + 1) * sizeof(char));
-  char *orig = str;
   char *aux;
-  task t;
-  size_t i = 1;
+  char *descript = malloc(100 * sizeof(char));
+  task *t;
+  size_t i;
 
-  while (fgets(str, CMD_BUFFER, stdin) != NULL) {
-    printf("::::TEST %lu:::::\n", i);
-    printf("%s -> ", str);
-    t = get_task(&str);
-    printf("%s ", str);
+  for (i = 0; i < 10; printf("\n\n"), i++) {
+    printf("::::TEST %lu:::::\n", i + 1);
+    if (i != 0)
+      sprintf(descript, "\"task %lu is a bitch\"", i);
+    else
+      sprintf(descript, "i'm a boss ass bitch");
+
+    t = task_(i, descript, i*i);
 
     if (!valid_task(t)) {
       printf("illegal arguments\n");
-      printf("\n\n");
-      i++;
-      free_task(t);
       continue;
     }
 
@@ -58,18 +57,17 @@ int main()
     printf("orig: %s ||", aux);
     free(aux);
 
-    change_task_duration(&t, id(t));
-    change_task_description(&t, "\"i am a dummy description\"");
+    change_task_duration(t, id(*t) + 1);
+    change_task_description(t, "\"i am a dummy description\"");
 
     aux = print_task(t);
     printf("changed: %s\n", aux);
     free(aux);
 
-    printf("\n\n");
-    i++;
     free_task(t);
+    free(t);
   }
 
-  free(orig);
+  free(descript);
   return 0;
 }
