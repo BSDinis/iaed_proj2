@@ -31,7 +31,7 @@
  *
  * return: ptr to l_node
  */
-l_node *l_node_(l_item val, l_node *prev, l_node *next)
+l_node *l_node_(item val, l_node *prev, l_node *next)
 {
   l_node *n = (l_node *) malloc(sizeof(l_node));
   val(*n) = val;
@@ -106,7 +106,7 @@ l_node *go_prev(l_node *n)
  *
  * return: false if the src is a tail
  */
-bool insert_l_node_after(l_node *src, l_item val)
+bool insert_l_node_after(l_node *src, item val)
 {
   l_node *new_node;
 
@@ -131,7 +131,7 @@ bool insert_l_node_after(l_node *src, l_item val)
  *
  * return: false if the src is a head
  */
-bool insert_l_node_before(l_node *src, l_item val)
+bool insert_l_node_before(l_node *src, item val)
 {
   l_node *new_node;
 
@@ -178,7 +178,7 @@ bool remove_l_node(l_node *src)
  */
 void free_l_node(l_node *n)
 {
-  free_l_item(val(*n));
+  free_item(val(*n));
 }
 
 
@@ -227,7 +227,7 @@ bool empty_list(lnkd_list *l)
  *   l: ptr to list
  *   val: item
  */
-void add_at_beginning(lnkd_list *l, l_item val)
+void add_at_beginning(lnkd_list *l, item val)
 {
   insert_l_node_after(head(*l), val);
 }
@@ -240,7 +240,7 @@ void add_at_beginning(lnkd_list *l, l_item val)
  *   l: ptr to list
  *   val: item
  */
-void add_at_end(lnkd_list *l, l_item val)
+void add_at_end(lnkd_list *l, item val)
 {
   insert_l_node_before(tail(*l), val);
 }
