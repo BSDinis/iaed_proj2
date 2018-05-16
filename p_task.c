@@ -88,20 +88,26 @@ p_task *p_task_(task *t, p_task **depends, size_t n_depends)
  */
 void free_p_task(p_task *a)
 {
+  size_t i;
   if (a != NULL) {
 
     if (task(*a) != NULL) {
       free_task(task(*a));
-      free(task(*a));
-      task(*a) = NULL;
     }
 
     if (depends(*a) != NULL) {
+      for (i = 0; i < n_depends(*a); i++) {
+        remove_successor(depends(*a)[i], a);
+      }
+
       free(depends(*a));
       depends(*a) = NULL;
     }
 
     if (successors(*a) != NULL) {
+      for (i = 0; i < n_succ(*a); i++) {
+        remove_dependency(successors(*a)[i], a);
+      }
       free(successors(*a));
       successors(*a) = NULL;
     }
@@ -229,6 +235,40 @@ bool remove_dependency(p_task *t, p_task *dependency)
 
   if (removed) 
     n_depends(*t)--;
+
+  return true;
+}
+
+
+/*
+ * function: remove_successor
+ *
+ * modifier for the p_task datatype
+ * removes a successor from the p_task addressed by t
+ *   t: ptr to a p_task
+ *   successor: pointer to p_task to be removed
+ *
+ * return: false if any of the pointers is NULL
+ */
+bool remove_successor(p_task *t, p_task *successor)
+{
+  size_t i, j;
+  bool removed = false;
+
+  if (t == NULL || successor == NULL) 
+    return false;
+
+  for (i = 0, j = 0; i < n_succ(*t); i++) {
+    if (successors(*t)[i] != successor) {
+      successors(*t)[j++] = successors(*t)[i];
+    }
+    else {
+      removed = true;
+    }
+  }
+
+  if (removed) 
+    n_succ(*t)--;
 
   return true;
 }

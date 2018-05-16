@@ -94,6 +94,8 @@ bool add_successor(p_task *ptr, p_task *new_successor);
 
 bool remove_dependency(p_task *t, p_task *dependency);
 
+bool remove_successor(p_task *t, p_task *successor);
+
 /* change_early and change_late make the valid flags true */
 bool change_early(p_task *t, unsigned long new_early);
 bool change_late(p_task *t, unsigned long new_late);

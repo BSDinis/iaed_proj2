@@ -35,13 +35,15 @@ static void fix_hashtable(hashtable *t);
 hashtable *hashtable_()
 {
   hashtable *t = (hashtable *) malloc(sizeof(hashtable));
-  size_t i;
+  size_t i = 0;
 
   size(*t) = INIT_HASH_SIZE;
   filled(*t) = 0;
-  table(*t) = (item *) malloc(size(*t) * sizeof(item));
+  table(*t) = (ht_item *) malloc(size(*t) * sizeof(ht_item));
 
-  for (i = 0; i < size(*t); table(*t)[i] = NULL_ITEM);
+  for (i = 0; i < size(*t); i++) {
+    table(*t)[i] = NULL_HT_ITEM;
+  }
 
   return t;
 }
@@ -52,7 +54,7 @@ hashtable *hashtable_()
  *
  * computes the first (main) hash
  *   t: ptr to hashtable
- *   k: key of an item
+ *   k: key of an ht_item
  *
  * returns: index
  */
@@ -81,16 +83,16 @@ size_t hash_2(key_t k)
  *
  * inserts an element in hashtable
  *   t: ptr to hashtable
- *   k: item
+ *   k: ht_item
  */
-void insert_hashtable(hashtable *t, item i)
+void insert_hashtable(hashtable *t, ht_item i)
 {
   size_t index;
   size_t step; 
-  if (!eq_item(i, NULL_ITEM)) {
-    index = hash_1(t, get_key(i));
-    step = hash_2(get_key(i)); 
-    while (!eq_item(table(*t)[index], NULL_ITEM))
+  if (!eq_ht_item(i, NULL_HT_ITEM)) {
+    index = hash_1(t, ht_key(i));
+    step = hash_2(ht_key(i)); 
+    while (!eq_ht_item(table(*t)[index], NULL_HT_ITEM))
       index = (index + step) % size(*t);
 
     table(*t)[index] = i;
@@ -110,20 +112,20 @@ void insert_hashtable(hashtable *t, item i)
  */
 static void fix_hashtable(hashtable *t)
 {
-  item *aux;
+  ht_item *aux;
   size_t i;
   if (density(*t) > 0.5) {
-    aux = (item *) malloc(size(*t) * sizeof(item));
+    aux = (ht_item *) malloc(size(*t) * sizeof(ht_item));
     for (i = 0; i < size(*t); i++)
       aux[i] = table(*t)[i];
 
     size(*t) *= 2;
     free(table(*t));
-    table(*t) = (item *) malloc(size(*t) * sizeof(item));
-    for (i = 0; i < size(*t); table(*t)[i++] = NULL_ITEM);
+    table(*t) = (ht_item *) malloc(size(*t) * sizeof(ht_item));
+    for (i = 0; i < size(*t); table(*t)[i++] = NULL_HT_ITEM);
 
     for (i = 0; i < (size(*t) / 2); i++) {
-      if (!eq_item(aux[i], NULL_ITEM)) {
+      if (!eq_ht_item(aux[i], NULL_HT_ITEM)) {
         insert_hashtable(t, aux[i]);
       }
     }
@@ -136,18 +138,18 @@ static void fix_hashtable(hashtable *t)
  *
  * removes an element from hashtable
  *   t: ptr to hashtable
- *   k: item
+ *   k: ht_item
  */
-void remove_hashtable(hashtable *t, item i)
+void remove_hashtable(hashtable *t, ht_item i)
 {
-  size_t index = hash_1(t, get_key(i));
-  size_t step = hash_2(get_key(i));
-  while (!eq_item(table(*t)[index], NULL_ITEM) 
-      && !eq_item(table(*t)[index], i)) {
+  size_t index = hash_1(t, ht_key(i));
+  size_t step = hash_2(ht_key(i));
+  while (!eq_ht_item(table(*t)[index], NULL_HT_ITEM) 
+      && !eq_ht_item(table(*t)[index], i)) {
     index = (index + step) % size(*t);
   }
 
-  if (!eq_item(table(*t)[index], NULL_ITEM)) {
+  if (!eq_ht_item(table(*t)[index], NULL_HT_ITEM)) {
     table(*t)[index] = SENTINEL;
     filled(*t)--;
   }
@@ -157,19 +159,48 @@ void remove_hashtable(hashtable *t, item i)
 /*
  * function: search_hashtable
  *
- * search for an item with a given key
+ * search for an ht_item with a given key
  *   t: ptr to hashtable
  *   key: key to search for
  *
- * return: item
+ * return: ht_item
  */
-item search_item(hashtable *t, key_t k)
+ht_item search_hashtable(hashtable *t, key_t k)
 {
   size_t index = hash_1(t, k);
   size_t step = hash_2(k);
-  while (!eq_item(table(*t)[index], NULL_ITEM) 
-      && !eq_key(get_key(table(*t)[index]), k))
+
+  while (table(*t)[index] == SENTINEL || 
+      (!eq_ht_item(table(*t)[index], NULL_HT_ITEM)
+       && !eq_key(ht_key(table(*t)[index]), k)) ) {
+
     index = (index + step) % size(*t);
+  }
 
   return table(*t)[index];
 }
+
+
+/*
+ * function: free_hashtable
+ *
+ * destructor for the hashtable datatype
+ *   ht: ptr to hashtable
+ *
+ * note: since in this application, the elements in the table will be 
+ * freed by another module, and freeing all elements in the hashtable is 
+ * relatively heavy (O(hashtable.size)), this function does not free the 
+ * elements
+ */
+void free_hashtable(hashtable *ht)
+{
+  if (ht != NULL) {
+    if (table(*ht) != NULL) 
+      free(table(*ht));
+
+    free(ht);
+    ht = NULL;
+  }
+}
+
+      

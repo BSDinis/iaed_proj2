@@ -25,13 +25,13 @@
  * function: l_node_
  *
  * construct a l_node 
- *   val: value (item)
+ *   val: value (l_item)
  *   prev: ptr to preceding node
  *   next: ptr to the next node
  *
  * return: ptr to l_node
  */
-l_node *l_node_(item val, l_node *prev, l_node *next)
+l_node *l_node_(l_item val, l_node *prev, l_node *next)
 {
   l_node *n = (l_node *) malloc(sizeof(l_node));
   val(*n) = val;
@@ -106,7 +106,7 @@ l_node *go_prev(l_node *n)
  *
  * return: false if the src is a tail
  */
-bool insert_l_node_after(l_node *src, item val)
+bool insert_l_node_after(l_node *src, l_item val)
 {
   l_node *new_node;
 
@@ -131,7 +131,7 @@ bool insert_l_node_after(l_node *src, item val)
  *
  * return: false if the src is a head
  */
-bool insert_l_node_before(l_node *src, item val)
+bool insert_l_node_before(l_node *src, l_item val)
 {
   l_node *new_node;
 
@@ -164,8 +164,6 @@ bool remove_l_node(l_node *src)
   prev(*next(*src)) = prev(*src);
 
   free_l_node(src);
-  free(src);
-
   return true;
 }
 
@@ -179,7 +177,7 @@ bool remove_l_node(l_node *src)
 void free_l_node(l_node *n)
 {
   if (n != NULL) {
-    free_item(val(*n));
+    free_l_item(val(*n));
     free(n);
     n = NULL;
   }
@@ -229,9 +227,9 @@ bool empty_list(lnkd_list *l)
  *
  * add an element at the beginning of the linked list
  *   l: ptr to list
- *   val: item
+ *   val: l_item
  */
-void add_at_beginning(lnkd_list *l, item val)
+void add_at_beginning(lnkd_list *l, l_item val)
 {
   insert_l_node_after(head(*l), val);
 }
@@ -242,9 +240,9 @@ void add_at_beginning(lnkd_list *l, item val)
  *
  * add an element at the end of the linked list
  *   l: ptr to list
- *   val: item
+ *   val: l_item
  */
-void add_at_end(lnkd_list *l, item val)
+void add_at_end(lnkd_list *l, l_item val)
 {
   insert_l_node_before(tail(*l), val);
 }
@@ -264,12 +262,10 @@ void free_lnkd_list(lnkd_list *l)
 
     while (!is_tail(n)) {
       free_l_node(prev(*n));
-      free(prev(*n));
       n = go_next(n);
     }
 
     free_l_node(prev(*tail(*l)));
-    free(prev(*tail(*l)));
     free(head(*l));
     free(tail(*l));
     free(l);
