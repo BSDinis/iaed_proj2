@@ -43,6 +43,8 @@ static void left_rotate(tree *t, t_node *x);
 /* right-rotate a node */
 static void right_rotate(tree *t, t_node *y);
 
+/* free a sub_tree */
+static void free_sub_tree(tree *t, t_node *n);
 /*-------------------------------*/
 /*-------------------------------*/
 /*-------------------------------*/
@@ -544,15 +546,31 @@ t_node *search_by_key(tree *t, key_t key)
  * function: free_tree 
  *
  * destructor for tree datatype
- * transverses the tree and frees every node
  *   t: ptr to tree
  */
 void free_tree(tree *t)
 {
   if (t != NULL) {
     free_sub_tree(t, root(*t));
-    free_t_node(nil);
+    free_t_node(nil(*t));
     free(t);
     t = NULL; 
+  }
+}
+
+
+/*
+ * function: free_sub_tree
+ *
+ * frees a sub-tree and the root of that sub-tree
+ *   t: ptr to tree
+ *   n: ptr to root of the sub-tree
+ */
+static void free_sub_tree(tree *t, t_node *n)
+{
+  if (!is_nil(t, n)) {
+    free_sub_tree(t, left(*n));
+    free_sub_tree(t, right(*n));
+    free_t_node(n);
   }
 }

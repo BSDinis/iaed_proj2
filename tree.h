@@ -70,7 +70,7 @@ void insert_t_node(tree *t, item val);
 key_t delete_t_node(tree *t, t_node *z);
 
 /* return an item given a certain key */
-item search_by_key(tree *t, key_t key);
+t_node *search_by_key(tree *t, key_t key);
 
 /* free a tree */
 void free_lnkd_list(tree *t);
