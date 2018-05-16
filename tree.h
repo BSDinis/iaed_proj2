@@ -73,6 +73,6 @@ key_t delete_t_node(tree *t, t_node *z);
 t_node *search_by_key(tree *t, key_t key);
 
 /* free a tree */
-void free_lnkd_list(tree *t);
+void free_tree(tree *t);
 
 #endif /* !TREE_H */
