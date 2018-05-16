@@ -25,7 +25,11 @@
 
 typedef p_task * item;
 
-unsigned long get_key(item a);
+typedef unsigned long key_t;
+#define less_key(a, b) (a < b)
+#define eq_key(a, b) (a == b)
+
+key_t get_key(item a);
 
 void free_item(item a);
 
