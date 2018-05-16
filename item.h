@@ -23,13 +23,16 @@
 
 #include "p_task.h"
 
-typedef p_task * item;
-
 typedef unsigned long key_t;
+
 #define less_key(a, b) (a < b)
 #define eq_key(a, b) (a == b)
 
-key_t get_key(item a);
+typedef p_task * item;
+#define get_key(a) ((key_t) id(*task(*a)))
+#define eq_item(a, b) (eq_key(a, b))
+
+#define NULL_ITEM NULL
 
 void free_item(item a);
 

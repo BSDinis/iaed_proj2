@@ -17,17 +17,6 @@
 #include "item.h"
 
 /*
- * function: get_key
- *   a: item
- *
- * return: items' key
- */
-unsigned long get_key(item a)
-{
-  return id(*task(*a));
-}
-
-/*
  * function: free_item
  *
  * frees an item

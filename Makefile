@@ -4,7 +4,7 @@ CFLAGS= -g -ansi -pedantic -Wall -Werror -I.
 
 all: main
 
-main: main.o task.o input.o dummy.o p_task.o item.o list.o tree.o
+main: main.o task.o input.o dummy.o p_task.o item.o list.o hashtable.o
 
 clean:
 	@rm  *.o
