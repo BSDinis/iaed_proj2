@@ -43,7 +43,7 @@ static char *print_depends(p_task *a);
  *
  * if the task is invalid, return NULL
  *
- * returns: p_task
+ * returns: ptr to p_task
  */
 p_task *p_task_(task *t, p_task **depends, size_t n_depends)
 {
