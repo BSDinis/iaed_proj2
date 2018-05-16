@@ -84,14 +84,30 @@ p_task *p_task_(task *t, p_task **depends, size_t n_depends)
  *   a: ptr to p_task
  *
  * frees p_task a
+ * sets ptr to NULL
  */
 void free_p_task(p_task *a)
 {
-  if (valid_p_task(a)) {
-    free_task(task(*a));
-    free(task(*a));
-    free(depends(*a));
-    free(successors(*a));
+  if (a != NULL) {
+
+    if (task(*a) != NULL) {
+      free_task(task(*a));
+      free(task(*a));
+      task(*a) = NULL;
+    }
+
+    if (depends(*a) != NULL) {
+      free(depends(*a));
+      depends(*a) = NULL;
+    }
+
+    if (successors(*a) != NULL) {
+      free(successors(*a));
+      successors(*a) = NULL;
+    }
+
+    free(a);
+    a = NULL;
   }
 }
 

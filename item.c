@@ -36,5 +36,4 @@ unsigned long get_key(item a)
 void free_item(item a)
 {
   free_p_task(a);
-  free(a);
 }

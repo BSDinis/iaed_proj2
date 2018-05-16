@@ -106,8 +106,12 @@ static bool verify_quoted_str(char *str, size_t buffer_size)
  */
 void free_task(task *a)
 {
-  if (valid_task(a)) {
+  if (a != NULL) {
     free(descript(*a));
+    descript(*a) = NULL;
+
+    free(a);
+    a = NULL;
   }
 }
 

@@ -178,7 +178,11 @@ bool remove_l_node(l_node *src)
  */
 void free_l_node(l_node *n)
 {
-  free_item(val(*n));
+  if (n != NULL) {
+    free_item(val(*n));
+    free(n);
+    n = NULL;
+  }
 }
 
 
@@ -255,17 +259,20 @@ void add_at_end(lnkd_list *l, item val)
 void free_lnkd_list(lnkd_list *l)
 {
   l_node *n;
+  if (l != NULL) {
+    n = next(*next(*head(*l)));
 
-  n = next(*next(*head(*l)));
-  while (!is_tail(n)) {
-    free_l_node(prev(*n));
-    free(prev(*n));
-    n = go_next(n);
+    while (!is_tail(n)) {
+      free_l_node(prev(*n));
+      free(prev(*n));
+      n = go_next(n);
+    }
+
+    free_l_node(prev(*tail(*l)));
+    free(prev(*tail(*l)));
+    free(head(*l));
+    free(tail(*l));
+    free(l);
+    l = NULL;
   }
-
-  free_l_node(prev(*tail(*l)));
-  free(prev(*tail(*l)));
-  free(head(*l));
-  free(tail(*l));
-  free(l);
 }
