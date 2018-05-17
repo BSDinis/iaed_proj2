@@ -330,10 +330,21 @@ void invalidate_early(p_task *t)
  * modifier for the p_task datatype
  *   t: ptr to a p_task
  *
- * turns the validation flag to false
+ * turns the validation flag to false doing the same for all dependencies
  */
 void invalidate_late(p_task *t)
 {
+  size_t i;
+
+  if (valid_late(*t) == false) {
+    return;
+  }
+
+
+  for (i = 0; i < n_depends(*t); i++) {
+    invalidate_late(depends(*t)[i]);
+  }
+
   valid_late(*t) = false;
 }
 

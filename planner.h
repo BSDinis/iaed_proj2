@@ -38,8 +38,8 @@
 #include "p_task.h"
 
 typedef struct {
-  list *l;
-  hashtable *ht;
+  lnkd_list *l;
+  hashtable *htable;
   unsigned long proj_duration;
   bool path_freshness;
 } planner;
@@ -57,10 +57,12 @@ planner *planner_();
 void free_planner(planner *p);
 
 /* insert modifier */
-bool add_task(planner *p, p_task *t);
+void add_task(planner *p, 
+    unsigned long id, char *descript, unsigned long dur, 
+    unsigned long *ids, size_t n_ids);
 
 /* remove modifier */
-bool remove_task(planner *p, unsigned long id);
+void remove_task(planner *p, unsigned long id);
 
 /* print by duration */
 void print_with_duration(planner *p, unsigned long dur);
