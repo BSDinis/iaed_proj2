@@ -36,6 +36,7 @@
 #include "list.h"
 #include "hashtable.h"
 #include "p_task.h"
+#include "task.h"
 
 typedef struct {
   lnkd_list *l;
@@ -67,10 +68,10 @@ void remove_task(planner *p, unsigned long id);
 /* print by duration */
 void print_with_duration(planner *p, unsigned long dur);
 
-/* print critical path */
-void print_critical_path(planner *p);
-
 /* print dependencies of a task */
 void print_dependencies(planner *p, unsigned long id);
+
+/* print critical path */
+void print_critical_path(planner *p);
 
 #endif /* !PLANNER_H */
