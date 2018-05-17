@@ -184,7 +184,7 @@ static bool depends_exist(planner *p, unsigned long *ids, size_t *n_ids)
 }
 
 /*
- * function: remove_task
+ * function: remove_task_id
  *
  * modifier for planner datatype
  * removes an item from project
@@ -192,12 +192,12 @@ static bool depends_exist(planner *p, unsigned long *ids, size_t *n_ids)
  *   t: ptr to p_task
  *
  */
-void remove_task(planner *p, unsigned long id)
+void remove_task_id(planner *p, unsigned long id)
 {
   l_node *node;
 
   if (p == NULL)
-    printf("error: planner.c: remove_task: NULL pointer\n");
+    printf("error: planner.c: remove_task_id: NULL pointer\n");
 
   if (!id_exists(p, id)) {
     printf("no such task\n");
@@ -240,6 +240,7 @@ static void invalidate_path(planner *p)
   node = go_next(head(*list(*p)));
   while (!is_tail(node)) {
     invalidate_late(val(*node));
+    node = go_next(node);
   }
 
   path_freshness(*p) = false;
@@ -335,6 +336,7 @@ void print_critical_path(planner *p)
   }
 
   calc_duration(p);
+  path_freshness(*p) = true;
 
   node = go_next(head(*list(*p)));
   while (!is_tail(node)) {
@@ -405,7 +407,7 @@ static void calc_duration(planner *p)
 static unsigned long calc_late_start(planner *p, p_task *t)
 {
   size_t i;
-  unsigned long max_late_successors, new_late, successor_late;
+  unsigned long min_late_successors, new_late, successor_late;
 
   if (p == NULL || t == NULL) {
     printf("error: planner.c: print_critical_path: NULL pointers\n");
@@ -421,13 +423,13 @@ static unsigned long calc_late_start(planner *p, p_task *t)
     return late(*t);
   }
 
-  max_late_successors = new_late = 0;
+  min_late_successors = new_late = ULONG_MAX;
   for (i = 0; i < n_succ(*t); i++) {
     successor_late = calc_late_start(p, successors(*t)[i]);
-    max_late_successors = max(max_late_successors, successor_late);
+    min_late_successors = min(min_late_successors, successor_late);
   }
 
-  new_late = max_late_successors - dur(*task(*t));
+  new_late = min_late_successors - dur(*task(*t));
   change_late(t, new_late);
   return late(*t);
 }

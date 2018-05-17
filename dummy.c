@@ -22,7 +22,7 @@
 /*-------------------------------*/
 
 
-void add_task(unsigned long id, char *descript, unsigned long dur, 
+void _add_task(unsigned long id, char *descript, unsigned long dur, 
     unsigned long *ids, size_t n_ids)
 {
   size_t i;
@@ -38,19 +38,19 @@ void add_task(unsigned long id, char *descript, unsigned long dur,
   printf("added a dummy task\n");
 }
 
-void list_task_duration(unsigned long dur)
+void _list_task_duration(unsigned long dur)
 {
   printf("input: %lu\n", dur);
   printf("its taking a bit too long to implement this function, isn't it?\n");
 }
 
-void list_dependencies(unsigned long id)
+void _list_dependencies(unsigned long id)
 {
   printf("input: %lu\n", id);
   printf("tell me who you are, i'll tell you who you depend on\n");
 }
 
-void remove_task_id(unsigned long id)
+void _remove_task_id(unsigned long id)
 {
   printf("input: %lu\n", id);
   printf("i had sth to tell you, but apparently someone removed that line\n");

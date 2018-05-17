@@ -36,7 +36,6 @@
 #include "list.h"
 #include "hashtable.h"
 #include "p_task.h"
-#include "task.h"
 
 typedef struct {
   lnkd_list *l;
@@ -63,7 +62,7 @@ void add_task(planner *p,
     unsigned long *ids, size_t n_ids);
 
 /* remove modifier */
-void remove_task(planner *p, unsigned long id);
+void remove_task_id(planner *p, unsigned long id);
 
 /* print by duration */
 void print_with_duration(planner *p, unsigned long dur);

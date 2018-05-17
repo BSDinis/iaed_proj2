@@ -49,6 +49,7 @@ p_task *p_task_(task *t, p_task **depends, size_t n_depends)
 {
   p_task *a;
   size_t i;
+  unsigned long early_start = 0;
 
   if (!valid_task(t)) 
     return NULL;
@@ -72,8 +73,12 @@ p_task *p_task_(task *t, p_task **depends, size_t n_depends)
       printf("FATAL ERROR: add_successor failed, invalid arguments\n");
       exit(1);
     }
+
+    early_start = max( early_start, 
+                       early(*(depends[i])) + dur(*task(*(depends[i]))) );
   }
 
+  change_early(a, early_start);
   return a;
 }
 
@@ -372,10 +377,14 @@ char *print_p_task(p_task *a, bool flag)
   early_late_str = print_early_late(a, early_late);
   ids = print_depends(a);
 
-
   len = strlen(task_str) + 1 + strlen(early_late_str) + strlen(ids);
   str = (char *) malloc((len + 1) * sizeof(char));
-  sprintf(str, "%s %s%s", task_str, early_late_str, ids);
+  len = sprintf(str, "%s %s%s", task_str, early_late_str, ids);
+
+  if (str[len - 1] == ' ') {
+    str[len - 1] = '\0';
+  }
+
   free(task_str);
   free(early_late_str);
   free(ids);
@@ -450,6 +459,7 @@ static char *print_depends(p_task *a)
       sprintf(aux, "%lu ", id( *task( *(depends(*a)[i]) ) ));
       strcat(str, aux);
     }
+
     free(aux);
   }
 

@@ -20,8 +20,9 @@
 #include <ctype.h>
 
 #include "task.h"
+#include "p_task.h"
 #include "input.h"
-#include "dummy.h"
+#include "planner.h"
 
 /* TODO: get a hold of the correct val */
 #define CMD_BUFFER 10000
@@ -49,17 +50,17 @@ cmd get_cmd(char **cmd_str);
 
 bool valid_command(cmd c);
 
-void add(char *cmd_str);
+void add(planner *project, char *cmd_str);
 
-void duration(char *cmd_str);
+void duration(planner *project, char *cmd_str);
 
-void depend(char *cmd_str);
+void depend(planner *project, char *cmd_str);
 
-void remove_task(char *cmd_str);
+void remove_task(planner *project, char *cmd_str);
 
-void path(char *cmd_str);
+void path(planner *project, char *cmd_str);
 
-void exit_proj(char *cmd_str);
+void exit_proj(planner *project, char *cmd_str);
 
 /*-------------------------------*/
 /*-------------------------------*/
@@ -72,9 +73,13 @@ int main(int argc, char *argv[])
   char *cmd_str;
   char *orig;
 
+  planner *project;
+
   /* function array, with the implemented functionalities */
-  void (*func[])(char *) = 
+  void (*func[])(planner *, char *) = 
     {&add, &duration, &depend, &remove_task, &path, &exit_proj};
+
+  project = planner_();
 
   do {
     if ((cmd_str = get_line()) == NULL) return 1;
@@ -83,7 +88,7 @@ int main(int argc, char *argv[])
     command = get_cmd(&cmd_str);
 
     if (valid_command(command)) {
-      func[command](cmd_str);
+      func[command](project, cmd_str);
     }
     else {
       printf("illegal arguments\n");
@@ -160,7 +165,7 @@ bool valid_command(cmd c)
  * correct input:
  *   add <id> <description> <dur> <ids>
  */
-void add(char *cmd_str)
+void add(planner *project, char *cmd_str)
 {
   size_t n_ids;
   unsigned long id, dur, *ids;
@@ -189,7 +194,7 @@ void add(char *cmd_str)
     return;
   }
 
-  add_task(id, description, dur, ids, n_ids);
+  add_task(project, id, description, dur, ids, n_ids);
   free(description);
   free(ids);
 }
@@ -203,19 +208,20 @@ void add(char *cmd_str)
  *
  * parses the rest of the cmd string to call the list_task_duration function TODO
  */
-void duration(char *cmd_str)
+void duration(planner *project, char *cmd_str)
 {
   unsigned long dur = 0;
 
   if (empty_str(cmd_str)) {
-    list_task_duration(0);
+    print_with_duration(project, 0);
   }
   else if (!get_ulong(&cmd_str, &dur) || !empty_str(cmd_str)) {
     printf("illegal arguments\n");
     return;
   }
-
-  list_task_duration(dur);
+  else {
+    print_with_duration(project, dur);
+  }
 }
 
 /*
@@ -226,16 +232,16 @@ void duration(char *cmd_str)
  *
  * parses the rest of the cmd string to call the list_dependencies function TODO
  */
-void depend(char *cmd_str)
+void depend(planner *project, char *cmd_str)
 {
-  unsigned long id;
+  unsigned long id = 0;
 
   if (!get_ulong(&cmd_str, &id) || !empty_str(cmd_str)) {
     printf("illegal arguments\n");
     return;
   }
 
-  list_dependencies(id);
+  print_dependencies(project, id);
 }
 
 
@@ -247,7 +253,7 @@ void depend(char *cmd_str)
  *
  * parses the rest of the cmd string to call the remove_task_id function TODO 
  */
-void remove_task(char *cmd_str)
+void remove_task(planner *project, char *cmd_str)
 {
   unsigned long id;
 
@@ -256,7 +262,7 @@ void remove_task(char *cmd_str)
     return;
   }
 
-  remove_task_id(id);
+  remove_task_id(project, id);
 }
 
 /*
@@ -267,13 +273,13 @@ void remove_task(char *cmd_str)
  *
  * parses the rest of the cmd string to call the proj_path function TODO
  */
-void path(char *cmd_str)
+void path(planner *project, char *cmd_str)
 {
   if (!empty_str(cmd_str)) {
     printf("illegal arguments\n");
   }
 
-  printf("the path of the righteous man is beset on all sides by the inequities of the selfish and the tiranny of evil men\n");
+  print_critical_path(project);
 }
 
 
@@ -285,11 +291,11 @@ void path(char *cmd_str)
  *
  * parses the rest of the cmd string to call the free_project function TODO
  */
-void exit_proj(char *cmd_str)
+void exit_proj(planner *project, char *cmd_str)
 {
   if (!empty_str(cmd_str)) {
     printf("illegal arguments\n");
   }
 
-  printf("it would seem i should get back on my way\n");
+  free_planner(project);
 }
