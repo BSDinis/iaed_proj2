@@ -128,6 +128,35 @@ void free_p_task(p_task *a)
   }
 }
 
+/* 
+ * function: careless_free_p_task
+ *
+ * careless destructor: frees without fixing dependencies
+ * ONLY USE WHEN FREEING EVERTHING 
+ *   a: ptr to p_task
+ */
+void careless_free_p_task(p_task *a)
+{
+  if (a != NULL) {
+
+    if (task(*a) != NULL) {
+      free_task(task(*a));
+    }
+
+    if (depends(*a) != NULL) {
+      free(depends(*a));
+      depends(*a) = NULL;
+    }
+
+    if (successors(*a) != NULL) {
+      free(successors(*a));
+      successors(*a) = NULL;
+    }
+
+    free(a);
+    a = NULL;
+  }
+}
 
 /* 
  * function: terminal_p_task

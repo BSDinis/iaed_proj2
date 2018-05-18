@@ -80,6 +80,10 @@ p_task *p_task_(task *t, p_task **depends, size_t n_depends);
 /* destructor */
 void free_p_task(p_task *a);
 
+/* careless destructor: frees without fixing dependencies
+ * ONLY USE WHEN FREEING EVERTHING */
+void careless_free_p_task(p_task *a);
+
 /* tests */
 
 /* checks if p_task is critical (early == late) */

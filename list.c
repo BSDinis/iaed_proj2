@@ -167,7 +167,7 @@ bool remove_l_node(l_node *src)
 
 
 /* 
- * function: remove_l_node
+ * function: free_l_node
  *
  * free the memory allocated for a node 
  *   n: ptr to node
@@ -180,6 +180,24 @@ void free_l_node(l_node *n)
     n = NULL;
   }
 }
+
+
+/* 
+ * function: careless_free_l_node
+ *
+ * carelessly free the memory allocated for a node 
+ * ONLY USE WHEN FREEING EVERYTHING 
+ *   n: ptr to node
+ */
+void careless_free_l_node(l_node *n)
+{
+  if (n != NULL) {
+    careless_free_l_item(val(*n));
+    free(n);
+    n = NULL;
+  }
+}
+
 
 
 /* 
@@ -259,11 +277,11 @@ void free_lnkd_list(lnkd_list *l)
     n = next(*next(*head(*l)));
 
     while (!is_tail(n)) {
-      free_l_node(prev(*n));
+      careless_free_l_node(prev(*n));
       n = go_next(n);
     }
 
-    free_l_node(prev(*tail(*l)));
+    careless_free_l_node(prev(*tail(*l)));
     free(head(*l));
     free(tail(*l));
     free(l);

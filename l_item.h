@@ -29,8 +29,13 @@ typedef p_task* l_item;
 #define NULL_L_ITEM NULL
 #define INVALID_L_ITEM ((l_item) ULONG_MAX)
 
+/* returns the key of an item */
 key_t l_key(l_item a); 
 
+/* destructor */
 void free_l_item(l_item a);
+
+/* carelessly frees an item: ONLY USE WHEN FREEING EVERYTHING */
+void careless_free_l_item(l_item a);
 
 #endif /* !L_ITEM_H */

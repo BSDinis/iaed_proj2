@@ -67,6 +67,10 @@ bool remove_l_node(l_node *src);
 /* free the memory allocated for a node */
 void free_l_node(l_node *n);
 
+/* carelessly free the memory allocated for a nodei
+ * ONLY USE WHEN FREEING EVERYTHING */
+void careless_free_l_node(l_node *n);
+
 /* initialize list */
 lnkd_list *lnkd_list_();
 

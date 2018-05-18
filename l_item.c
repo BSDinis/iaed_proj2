@@ -42,3 +42,14 @@ void free_l_item(l_item a)
 {
   free_p_task(a);
 }
+
+/*
+ * function: careless_free_l_item
+ *
+ * carelessly frees an item: ONLY USE WHEN FREEING EVERYTHING 
+ *   a: l_item
+ */
+void careless_free_l_item(l_item a)
+{
+  careless_free_p_task(a);
+}
