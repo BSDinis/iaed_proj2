@@ -10,14 +10,8 @@
 
 #include "task.h"
 
-#define max(a, b) ((a > b) ? a : b)
-#define min(a, b) ((a < b) ? a : b)
-
 /* buffer for the description of a task (8000 chars as per specification) */
 #define DESCRIPT_BUFFER 8000
-
-/* size of error string: _error_ : 7 chars */
-#define ERROR_BUFFER 7
 
 /* buffer a ulong (ULONG_MAX = 4294967295 -> 10 chars) */
 #define ULONG_BUFFER 10
@@ -26,6 +20,7 @@
 /* prototypes */
 /*-------------------------------*/
 
+/* verifies correctess of the input string */
 static bool verify_quoted_str(char *str, size_t buffer_size);
 
 /*-------------------------------*/
@@ -89,7 +84,7 @@ static bool verify_quoted_str(char *str, size_t buffer_size)
 
   len = strlen(str);
   
-  if (str[0] != '"' || str[len - 1] != '"' || len > buffer_size) 
+  if (str[0] != '\"' || str[len - 1] != '\"' || len > buffer_size) 
     return false;
 
   return true;
