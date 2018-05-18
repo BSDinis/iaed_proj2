@@ -53,9 +53,6 @@ task *task_(unsigned long id, char *descript, unsigned long dur);
 /* destructor */
 void free_task(task *a);
 
-/* verifier */
-bool valid_task(task *a);
-
 /* modifiers */
 bool change_task_description(task *t, char *new_desc);
 bool change_task_duration(task *t, unsigned long new_dur);

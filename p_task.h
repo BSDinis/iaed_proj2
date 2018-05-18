@@ -71,7 +71,8 @@ typedef struct _p_task{
  * returns a ptr to p_task with the parameters if they are correct
  * returns an invalid p_task otherwise
  *
- * early and late start invalid
+ * calculates early_start (is a constant)
+ * late start invalid
  * successors is allocated with an initial size
  */
 p_task *p_task_(task *t, p_task **depends, size_t n_depends);
@@ -79,26 +80,32 @@ p_task *p_task_(task *t, p_task **depends, size_t n_depends);
 /* destructor */
 void free_p_task(p_task *a);
 
-/* verifier */
-bool valid_p_task(p_task *a);
-
 /* tests */
+
+/* checks if p_task is critical (early == late) */
 bool critical_p_task(p_task *a);
 
+/* check if p_task is terminal (no successors) */
 bool terminal_p_task(p_task *a);
 
+/* check if p_task is initial (no predecessors) */
 bool initial_p_task(p_task *a);
 
 /* modifiers */
+/* adds a successor, updating lists */
 bool add_successor(p_task *ptr, p_task *new_successor);
 
+/* removes a dependency, updating lists */
 bool remove_dependency(p_task *t, p_task *dependency);
 
+/* removes a successor, updating lists */
 bool remove_successor(p_task *t, p_task *successor);
 
 /* change_early and change_late make the valid flags true */
 bool change_early(p_task *t, unsigned long new_early);
 bool change_late(p_task *t, unsigned long new_late);
+
+/* invalidate early and late starts */
 void invalidate_early(p_task *t);
 void invalidate_late(p_task *t);
 

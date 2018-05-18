@@ -24,8 +24,10 @@
 /* prototypes */
 /*-------------------------------*/
 
+/* prints the early_late component of the p_task representation */
 static char *print_early_late(p_task *a, bool flag);
 
+/* prints the ids of the dependencies of a p_task */
 static char *print_depends(p_task *a);
 
 /*-------------------------------*/
@@ -43,6 +45,9 @@ static char *print_depends(p_task *a);
  *
  * if the task is invalid, return NULL
  *
+ * computes the early start since, by the projects logic, only terminal 
+ * tasks can be removed, which means early tasks are never invalidated
+ *
  * returns: ptr to p_task
  */
 p_task *p_task_(task *t, p_task **depends, size_t n_depends)
@@ -51,7 +56,7 @@ p_task *p_task_(task *t, p_task **depends, size_t n_depends)
   size_t i;
   unsigned long early_start = 0;
 
-  if (!valid_task(t)) 
+  if (t == NULL) 
     return NULL;
               
   a = (p_task *) malloc(sizeof(p_task));
@@ -67,6 +72,7 @@ p_task *p_task_(task *t, p_task **depends, size_t n_depends)
   successors(*a) = (p_task **) malloc(n_allocd(*a) * sizeof(p_task *));
   n_succ(*a) = 0;
 
+  /* add dependencies */
   for (i = 0; i < n_depends(*a); i++) {
     depends(*a)[i] = depends[i];
     if (!add_successor(depends(*a)[i], a)) {
@@ -120,19 +126,6 @@ void free_p_task(p_task *a)
     free(a);
     a = NULL;
   }
-}
-
-/* 
- * function: valid_p_task
- *
- * verifier for the p_task datatype
- *   a: ptr to p_task
- *
- * verifies if the p_task is valid
- */
-bool valid_p_task(p_task *a)
-{
-  return a != NULL;
 }
 
 
@@ -395,7 +388,7 @@ char *print_p_task(p_task *a, bool flag)
 /*
  * function: print_early_late
  *
- * prints the early_late component of the p_task represenation
+ * prints the early_late component of the p_task representation
  *   a: ptr to p_task
  *   flag: bolean flag, that indicates wheter the early and late starts should
  *     be printed

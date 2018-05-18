@@ -110,17 +110,6 @@ void free_task(task *a)
   }
 }
 
-/* 
- * function: valid_task
- * 
- * input: ptr to task
- * verifies if the task is valid
- */
-bool valid_task(task *a)
-{
-  return a != NULL;
-}
-
 
 /*
  * function: change_task_description
