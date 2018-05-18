@@ -23,20 +23,20 @@
 #include <ctype.h>
 #include <limits.h>
 
-/* get a unsigned long */
+/* get arbitrary sized line */
+char *get_line();
+
+/* get a positive unsigned long */
 bool get_ulong(char **str, unsigned long *u);
 
-/* get a list of unsigned longs:
+/* get a list of positive unsigned longs:
  * returns the list and the number of elements */
 bool get_ulong_list(char **str, unsigned long **list, size_t *n_elems);
 
-/* get a line */
-char *get_line();
-
-/* get a string */
+/* get a string, which only has a space after it */
 bool get_str(char **str, char **out_str);
 
-/* get a string delimited by quotes*/
+/* get a string delimited by quotes */
 bool get_quoted_str(char **str, char **out_str, size_t max_len);
 
 /* check if a string is empty */

@@ -92,7 +92,7 @@ void insert_hashtable(hashtable *t, ht_item i)
   if (!eq_ht_item(i, NULL_HT_ITEM)) {
     index = hash_1(t, ht_key(i));
     step = hash_2(ht_key(i)); 
-    while (!eq_ht_item(table(*t)[index], NULL_HT_ITEM))
+    while (table(*t)[index] != NULL)
       index = (index + step) % size(*t);
 
     table(*t)[index] = i;
@@ -149,8 +149,7 @@ void remove_hashtable(hashtable *t, ht_item i)
 {
   size_t index = hash_1(t, ht_key(i));
   size_t step = hash_2(ht_key(i));
-  while (!eq_ht_item(table(*t)[index], NULL_HT_ITEM) 
-      && !eq_ht_item(table(*t)[index], i)) {
+  while (table(*t)[index] !=  NULL && table(*t)[index] != i) {
     index = (index + step) % size(*t);
   }
 

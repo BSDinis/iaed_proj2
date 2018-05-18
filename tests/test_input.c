@@ -31,6 +31,7 @@ int main()
   size_t len;
   int i = 1;
   list = NULL;
+  str1 = str2 = NULL;
 
   while (fgets(str, CMD_BUFFER, stdin) != NULL) {
     printf("::::TEST %i:::::\n", i);
@@ -52,14 +53,13 @@ int main()
 
     if (!get_ulong_list(&str, &list, &len)) {
       printf("error getting ulong list: continuing");
-      goto cleanup3;
+      goto cleanup2;
     }
 
     printf("str1: %s\n", str1);
     printf("str2: %s\n", str2);
     printf("ulong: %lu\n", u);
     
-cleanup3:
     free(list);
 cleanup2:
     free(str2);

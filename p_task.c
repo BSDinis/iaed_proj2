@@ -452,13 +452,17 @@ static char *print_depends(p_task *a)
     str[0] = '\0';
   }
   else {
-    str = (char *) malloc(len * sizeof(char)); 
+    str = (char *) malloc((len + 1) * sizeof(char)); 
     aux = (char *) malloc((ULONG_BUFFER + 2) * sizeof(char));
 
     for (i = 0, strcpy(str, ""); i < n_depends(*a); i++) {
       sprintf(aux, "%lu ", id( *task( *(depends(*a)[i]) ) ));
       strcat(str, aux);
     }
+
+    len = strlen(str);
+    if (str[len - 1] == ' ')
+      str[len - 1] = '\0';
 
     free(aux);
   }

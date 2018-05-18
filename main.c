@@ -24,9 +24,6 @@
 #include "input.h"
 #include "planner.h"
 
-/* TODO: get a hold of the correct val */
-#define CMD_BUFFER 10000
-
 /* maximum size of a quoted string */
 #define MAX_QUOTED_STR 8000
 
@@ -115,10 +112,12 @@ int main(int argc, char *argv[])
 cmd get_cmd(char **cmd_str_ptr)
 {
   cmd c;
-  char *token;
+  char *token = NULL;
 
   if (!get_str(cmd_str_ptr, &token)) {
-    free(token);
+    if (token != NULL) {
+      free(token);
+    }
     return INVALID;
   }
   else {

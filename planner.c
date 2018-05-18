@@ -127,6 +127,8 @@ void add_task(planner *p,
   node = prev(*tail(*(list(*p))));
   insert_hashtable(htable(*p), node);
 
+  invalidate_path(p);
+
   free(depends);
 }
 
@@ -206,7 +208,7 @@ void remove_task_id(planner *p, unsigned long id)
 
   node = search_hashtable(htable(*p), id);
   if (!terminal_p_task(val(*node))) {
-    printf("task with dependencies");
+    printf("task with dependencies\n");
     return;
   }
 
@@ -236,6 +238,9 @@ static void invalidate_path(planner *p)
     printf("error: planner.c: invalidate_path: NULL pointer\n");
     return;
   }
+  
+  if (!path_freshness(*p))
+    return;
 
   node = go_next(head(*list(*p)));
   while (!is_tail(node)) {
@@ -304,7 +309,7 @@ void print_dependencies(planner *p, unsigned long id)
 
   printf("%lu:", id(*task(*val(*node))));
   if (terminal_p_task(val(*node))) {
-    printf(" no depedencies");
+    printf(" no dependencies\n");
     return;
   }
 
@@ -366,7 +371,7 @@ void print_critical_path(planner *p)
 static void calc_duration(planner *p)
 {
   l_node *node;
-  unsigned long max_early_start, tmp_dur;
+  unsigned long tmp_dur;
 
   if (p == NULL) {
     printf("error: planner.c: calc_duration: NULL pointer\n");
@@ -375,14 +380,13 @@ static void calc_duration(planner *p)
   else if (path_freshness(*p)) 
     return;
 
-  max_early_start = tmp_dur = 0;
+  tmp_dur = 0;
 
   node = go_next(head(*list(*p)));
 
   while (!is_tail(node)) {
     if (terminal_p_task(val(*node))) {
-      max_early_start = max(max_early_start, early(*val(*node)));
-      tmp_dur = max_early_start + dur(*task(*val(*node)));
+      tmp_dur = max(tmp_dur, early(*val(*node)) + dur(*task(*val(*node))));
     }
 
     node = go_next(node);
@@ -408,6 +412,7 @@ static unsigned long calc_late_start(planner *p, p_task *t)
 {
   size_t i;
   unsigned long min_late_successors, new_late, successor_late;
+  min_late_successors = new_late = successor_late = 0;
 
   if (p == NULL || t == NULL) {
     printf("error: planner.c: print_critical_path: NULL pointers\n");
@@ -417,13 +422,18 @@ static unsigned long calc_late_start(planner *p, p_task *t)
     return late(*t);
   }
 
+  if (!path_freshness(*p)) {
+    path_freshness(*p) = true;
+    calc_duration(p);
+  }
+
   if (terminal_p_task(t)) {
     new_late = proj_duration(*p) - dur(*task(*t));
     change_late(t, new_late);
     return late(*t);
   }
 
-  min_late_successors = new_late = ULONG_MAX;
+  min_late_successors = ULONG_MAX;
   for (i = 0; i < n_succ(*t); i++) {
     successor_late = calc_late_start(p, successors(*t)[i]);
     min_late_successors = min(min_late_successors, successor_late);
@@ -433,4 +443,3 @@ static unsigned long calc_late_start(planner *p, p_task *t)
   change_late(t, new_late);
   return late(*t);
 }
-

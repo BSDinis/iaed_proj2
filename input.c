@@ -11,7 +11,7 @@
 #include "input.h"
 
 #define INIT_ALLOC 4
-#define INIT_BUFF 256
+#define INIT_BUFF 1024
 
 /*-------------------------------*/
 /* prototypes */
@@ -19,6 +19,9 @@
 
 /* verifies if a string is a representation of a ulong */
 static bool is_ulong(char *str);
+
+/* verifies if a char is black (' ' or '\t') */
+static bool isblank(char c);
 
 /*-------------------------------*/
 /*-------------------------------*/
@@ -35,7 +38,7 @@ static bool is_ulong(char *str);
  */
 bool get_ulong(char **str, unsigned long *u)
 {
-  char *token;
+  char *token = NULL;
 
   if (!get_str(str, &token)) {
     free(token);
@@ -48,6 +51,10 @@ bool get_ulong(char **str, unsigned long *u)
   }
 
   free(token);
+
+  if (*u == 0)
+    return false;
+
   return true;
 }
 
@@ -107,8 +114,8 @@ bool get_ulong_list(char **str, unsigned long **list, size_t *n_elems)
 /* 
  * function: get_line
  *
- * reads a line from stdinput
- * allocates memory exponentially to accomodate
+ * reads a line from stdin
+ * allocates memory exponentially to accomodate growing input
  * includes the newline character
  *
  * return: string,
@@ -148,7 +155,7 @@ char *get_line()
 /*
  * function: get_str
  *
- * gets a string delimited by whitespace
+ * gets a string delimited by a single whitespace 
  *   str: pointer to string where the token is extracted
  *   out_str: pointer to string, to be filled
  *
@@ -158,14 +165,22 @@ bool get_str(char **str, char **out_str)
 {
   char *token;
 
-  token = strtok(*str, " \t");
+  token = strchr(*str, ' ');
   
-  if (token == NULL) return false;
+  if (token == NULL) 
+    return false;
 
-  *out_str = malloc((strlen(token) + 1) * sizeof(char));
-  strcpy(*out_str, token);
+  if (strlen(token) == 1 || token[0] != ' ' || isblank(token[1]))
+    return false;
 
-  *str += strlen(token) + 1;
+  token[0] = '\0';
+
+  *out_str = malloc((strlen(*str) + 1) * sizeof(char));
+  strcpy(*out_str, *str);
+
+  token[0] = ' ';
+
+  *str = token + 1;
   return true;
 }
 
@@ -182,28 +197,28 @@ bool get_str(char **str, char **out_str)
  */
 bool get_quoted_str(char **str, char **out_str, size_t max_len)
 {
-  char *token, *aux;
+  char *tok1, *tok2;
 
   /* find first and second occurences of '"' in string */
-  token = strchr(*str, '\"');
-  aux = strchr(token + 1, '\"');
+  tok1 = strchr(*str, '\"');
+  tok2 = strchr(tok1 + 1, '\"');
   
-  if (token == NULL || aux == NULL ||
-      strlen(aux) == 1 || !isspace(aux[1])) {
+  if (tok1 == NULL || tok2 == NULL || strlen(tok2) == 1
+      || !isblank(tok2[1]) || isblank(tok2[2])) {
     return false;
   }
 
-  aux[1] = '\0';
+  tok2[1] = '\0';
 
   /* check for size restriciton */
-  if (strlen(token) > max_len) 
+  if (strlen(tok1) > max_len) 
     return false;
 
-  *out_str = malloc((strlen(token) + 1) * sizeof(char));
-  strcpy(*out_str, token);
+  *out_str = malloc((strlen(tok1) + 1) * sizeof(char));
+  strcpy(*out_str, tok1);
 
-  /* flush the string to after the quote and the terminator */
-  *str = aux + 2;
+  /* flush the string to after the quote and the space */
+  *str = tok2 + 2;
   return true;
 }
 
@@ -214,19 +229,28 @@ bool get_quoted_str(char **str, char **out_str, size_t max_len)
  * checks if a string is empty
  *   str: string to be checked
  *
- * return: false if there is a non-whitespace char
- *         true in case of NULL string
+ * return: true on empty str
+ *
+ * a str is empty if it is " \n" or "\n" or " "
  */
 bool empty_str(char *str)
 {
-  size_t i = 0;
-
-  if (str == NULL)
-    return true;
-
-  while (str[i] != '\0' && isspace(str[i])) {
-    i++;
-  }
-
-  return str[i - 1] == '\n';
+  return (str == NULL
+          ||strcmp(str, " \n") == 0 
+          || strcmp(str, "\n") == 0 
+          || strcmp(str, " ") == 0);
 }
+
+/*
+ * function: isblank
+ *
+ * check if a character is blank (either space or tab)
+ *   c: char
+ * 
+ * return: bool
+ */
+static bool isblank(char c)
+{
+  return c == ' ' || c == '\t';
+}
+
