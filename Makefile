@@ -1,5 +1,5 @@
 CC=gcc
-CFLAGS= -g -ansi -pedantic -Wall -Werror -I. #-pg
+CFLAGS= "-g" -ansi -pedantic -Wall -Werror -I. #-pg
 #LDFLAGS= -pg
 
 all: main

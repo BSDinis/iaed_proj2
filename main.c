@@ -160,7 +160,7 @@ bool valid_command(cmd c)
  * adds a task to the project
  *   cmd_str: command string, only with the arguments
  *
- * parses the rest of the cmd string to call the add_task function TODO
+ * parses the rest of the cmd string to call the add_task function 
  * correct input:
  *   add <id> <description> <dur> <ids>
  */
@@ -205,7 +205,7 @@ void add(planner *project, char *cmd_str)
  * lists the tasks with a given (or longer) duration
  *   cmd_str: command string, only with the arguments
  *
- * parses the rest of the cmd string to call the list_task_duration function TODO
+ * parses the rest of the cmd string to call the list_task_duration function 
  */
 void duration(planner *project, char *cmd_str)
 {
@@ -229,7 +229,7 @@ void duration(planner *project, char *cmd_str)
  * lists the dependencies of a task
  *   cmd_str: command string, only with the arguments
  *
- * parses the rest of the cmd string to call the list_dependencies function TODO
+ * parses the rest of the cmd string to call the list_dependencies function 
  */
 void depend(planner *project, char *cmd_str)
 {
@@ -250,7 +250,7 @@ void depend(planner *project, char *cmd_str)
  * removes a task from the project
  *   cmd_str: command string, only with the arguments
  *
- * parses the rest of the cmd string to call the remove_task_id function TODO 
+ * parses the rest of the cmd string to call the remove_task_id function 
  */
 void remove_task(planner *project, char *cmd_str)
 {
@@ -270,7 +270,7 @@ void remove_task(planner *project, char *cmd_str)
  * lists the critical path of a project
  *   cmd_str: command string, only with the arguments
  *
- * parses the rest of the cmd string to call the proj_path function TODO
+ * parses the rest of the cmd string to call the proj_path function
  */
 void path(planner *project, char *cmd_str)
 {
@@ -288,7 +288,7 @@ void path(planner *project, char *cmd_str)
  * packs everything up to quit the program
  *   cmd_str: command string, only with the arguments
  *
- * parses the rest of the cmd string to call the free_project function TODO
+ * parses the rest of the cmd string to call the free_project function
  */
 void exit_proj(planner *project, char *cmd_str)
 {

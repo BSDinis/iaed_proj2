@@ -14,11 +14,10 @@
 #define min(a, b) ((a < b) ? a : b)
 
 /* initial size allocated for the list of successors */
-#define INIT_SUCC_SIZE 32
+#define INIT_SUCC_SIZE 64
 
 /* buffer a ulong (ULONG_MAX = 4294967295 -> 10 chars) */
 #define ULONG_BUFFER 10
-
 
 /*-------------------------------*/
 /* prototypes */
@@ -75,13 +74,11 @@ p_task *p_task_(task *t, p_task **depends, size_t n_depends)
   /* add dependencies */
   for (i = 0; i < n_depends(*a); i++) {
     depends(*a)[i] = depends[i];
-    if (!add_successor(depends(*a)[i], a)) {
-      printf("FATAL ERROR: add_successor failed, invalid arguments\n");
-      exit(1);
-    }
+    add_successor(depends(*a)[i], a);
 
     early_start = max( early_start, 
-                       early(*(depends[i])) + dur(*task(*(depends[i]))) );
+                       early(*(depends(*a)[i])) 
+                       + dur(*task(*(depends(*a)[i]))) );
   }
 
   change_early(a, early_start);

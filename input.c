@@ -10,15 +10,16 @@
 
 #include "input.h"
 
-#define INIT_ALLOC 4
+#define INIT_ALLOC 512
 #define INIT_BUFF 1024
 
 /*-------------------------------*/
 /* prototypes */
 /*-------------------------------*/
 
-/* verifies if a string is a representation of a ulong */
+/* verifies if a string is a representation of a ulong *
 static bool is_ulong(char *str);
+*/  
 
 /* verifies if a char is black (' ' or '\t') */
 static bool isblank(char c);
@@ -45,7 +46,7 @@ bool get_ulong(char **str, unsigned long *u)
     return false;
   }
 
-  if (!is_ulong(token) || sscanf(token, "%lu", u) < 1) {
+  if (/*!is_ulong(token) || */sscanf(token, "%lu", u) < 1) {
     free(token);
     return false;
   }
@@ -66,7 +67,7 @@ bool get_ulong(char **str, unsigned long *u)
  *   str: string to be verified
  *
  * returns: true if the string only has digits
- */
+ *
 static bool is_ulong(char *str)
 {
   int i = 0;
@@ -74,6 +75,7 @@ static bool is_ulong(char *str)
 
   return str[i] == 0;
 }
+*/
 
 
 /*

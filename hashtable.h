@@ -16,18 +16,16 @@
 
 #include <stdio.h>
 #include <stdlib.h>
-#include <string.h>
 #include <stdbool.h>
-#include <ctype.h>
 #include <limits.h>
 
 #include "ht_item.h"
 
 /* initial size for hash table: arbitrary prime */
-#define INIT_HASH_SIZE 131
+#define INIT_HASH_SIZE 2011
 
 /* prime for second hash function must be different than INIT_HASH_SIZE */
-#define HASH_STEP 7
+#define HASH_STEP 17
 
 /* define the sentinel, 
  * placed when a previous value was removed from the table */
