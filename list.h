@@ -8,6 +8,7 @@
  * header file for lnkd_list.c
  *
  * implements a (doubly) linked list
+ * implements an auxiliar datatype: l_node
  *
  * note on implementation: two dummy nodes (head and tail) are used.
  */
@@ -17,10 +18,7 @@
 
 #include <stdio.h>
 #include <stdlib.h>
-#include <string.h>
 #include <stdbool.h>
-#include <ctype.h>
-#include <limits.h>
 
 #include "l_item.h"
 

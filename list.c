@@ -6,12 +6,10 @@
  * IAED project
  *
  * defines the list datatype
+ * defines the auxiliar datatype l_node
  */
 
 #include "list.h"
-
-#define max(a, b) ((a > b) ? a : b)
-#define min(a, b) ((a < b) ? a : b)
 
 /*-------------------------------*/
 /* prototypes */
