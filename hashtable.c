@@ -113,22 +113,27 @@ void insert_hashtable(hashtable *t, ht_item i)
 static void fix_hashtable(hashtable *t)
 {
   ht_item *aux;
+  size_t aux_size;
   size_t i;
   if (density(*t) > 0.5) {
+
     aux = (ht_item *) malloc(size(*t) * sizeof(ht_item));
-    for (i = 0; i < size(*t); i++)
-      aux[i] = table(*t)[i];
+    for (i = aux_size = 0; i < size(*t); i++) {
+      if (table(*t)[i] != SENTINEL && table(*t)[i] != NULL) {
+        aux[aux_size++] = table(*t)[i];
+      }
+    }
 
     size(*t) *= 2;
     free(table(*t));
     table(*t) = (ht_item *) malloc(size(*t) * sizeof(ht_item));
     for (i = 0; i < size(*t); table(*t)[i++] = NULL_HT_ITEM);
 
-    for (i = 0; i < (size(*t) / 2); i++) {
-      if (!eq_ht_item(aux[i], NULL_HT_ITEM)) {
-        insert_hashtable(t, aux[i]);
-      }
+    for (i = 0; i < aux_size; i++) {
+      insert_hashtable(t, aux[i]);
     }
+
+    free(aux);
   }
 }
 
