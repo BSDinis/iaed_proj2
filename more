@@ -1,1 +1,0 @@
-gcc -g -ansi -pedantic -Wall -Werror -I.   -c -o p_task.o p_task.c

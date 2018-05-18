@@ -23,6 +23,22 @@ static bool id_exists(planner *p, unsigned long id);
 /* check if the a list of ids all exist on the project */
 static bool depends_exist(planner *p, unsigned long *ids, size_t *n_ids);
 
+/* removes duplicates from a list os positive unsigned longs */
+static void remove_duplicates(unsigned long *list, size_t *size);
+
+/* removes all occurences of a sentinel */
+static void remove_sentinels(unsigned long *list, size_t *size,
+                             unsigned long sentinel);
+
+/* removes duplicates in list of positive ulongs in O(n^2) */
+static void naive_remove(unsigned long *list, size_t *size);
+
+/* checks if a ulong is less than the other */
+static int less_ulong(const void *a, const void *b);
+
+/* checks if a ulong is greater than the other */
+static int greater_ulong(const void *a, const void *b);
+
 /* invalidate the critical path of the project */
 static void invalidate_path(planner *p);
 
@@ -109,7 +125,7 @@ void add_task(planner *p,
     return;
   }
 
-  /* note: this function removes duplicates */
+  remove_duplicates(ids, &n_ids);
   if (!depends_exist(p, ids, &n_ids)) {
     printf("no such task\n");
     return;
@@ -151,6 +167,158 @@ static bool id_exists(planner *p, unsigned long id)
 
 
 /*
+ * function: remove_duplicates
+ *
+ * removes duplicates from a list os positive unsigned longs
+ *   list: list of unsigned longs
+ *   size: ptr to size of list
+ *
+ * performs optimization checks:
+ *   check simultaneously if:
+ *     the list is ordered 
+ *     two items are equal (removing the last one in that case)
+ *
+ *   if the list is not ordered, copy it, sort it using qsort
+ *   and check for duplicates
+ *
+ *   if they exist, run a naive n^2 to remove duplicates in original list
+ */
+static void remove_duplicates(unsigned long *list, size_t *size)
+{
+  size_t i;
+  unsigned long *aux;
+  int (*cmpfunc)(const void *, const void *b);
+  bool employ_naive = false;
+
+  /* sanity checks */
+  if (list == NULL || *size <= 1)
+    return;
+
+  /* 0 is a sentinel */
+  for (i = 0; i < *size - 1 && list[i] == list[i + 1]; list[i++] = 0);
+
+  cmpfunc = (list[i] < list[i + 1]) ? less_ulong : greater_ulong;
+
+  for (i++; i < *size - 1; i++) {
+    if (list[i] == list[i + 1]) {
+      list[i] = 0;
+    }
+    /* if the order is inverted, break */
+    else if (cmpfunc(&list[i], &list[i + 1]) < 0) {
+      i = *size;
+    }
+  }
+
+  remove_sentinels(list, size, 0);
+  aux = (unsigned long *) malloc(*size * sizeof(unsigned long));
+  for (i = 0; i < *size; aux[i] = list[i], i++);
+
+  qsort(aux, *size, sizeof(unsigned long), cmpfunc);
+  for (i = 0; i < *size - 1 && !employ_naive; i++) {
+    if (aux[i] == aux[i + 1]) {
+      employ_naive = true;
+    }
+  }
+
+  if (employ_naive) 
+    naive_remove(list, size);
+
+  return;
+}
+
+
+/*
+ * function: less_ulong
+ *
+ * checks if a ulong is less than the other
+ *   a: ptr to const void
+ *   b: ptr to const void
+ * 
+ * returns: positive if a < b
+ */
+static int less_ulong(const void *a, const void *b)
+{
+  return ((long) *((unsigned long *)b) - (long) *((unsigned long *)a));
+}
+
+/*
+ * function: greater_ulong
+ *
+ * checks if a ulong is greater than the other
+ *   a: ptr to const void
+ *   b: ptr to const void
+ * 
+ * returns: positive if a > b
+ */
+static int greater_ulong(const void *a, const void *b)
+{
+  return ((long) *((unsigned long *)a) - (long) *((unsigned long *)b));
+}
+
+/*
+ * function: remove_sentinels
+ *
+ * removes all occurences of a sentinel
+ *   list: list of unsigned longs
+ *   size: ptr to list size
+ *   sentinel: unsigned long, marks a position to be removed
+ */
+static void remove_sentinels(unsigned long *list, size_t *size,
+                             unsigned long sentinel)
+{
+  size_t i, new_size;
+  unsigned long *aux;
+
+  if (list == NULL || size == NULL || *size <= 1)
+    return;
+
+  aux = (unsigned long *) malloc(*size * sizeof(unsigned long));
+  for (i = new_size = 0; i < *size; i++) {
+    if (list[i] != sentinel) {
+      aux[new_size++] = list[i];
+    }
+  }
+
+  for (i = 0; i < new_size; i++) 
+    list[i] = aux[i];
+
+  list = (unsigned long *) realloc(list, new_size * sizeof(unsigned long));
+  *size = new_size;
+  free(aux);
+}
+
+/*
+ * function: naive_remove
+ *
+ * removes duplicates in list of positive ulongs in O(n^2)
+ *   list: list of ulongs
+ *   size: ptr to size of the list
+ */
+static void naive_remove(unsigned long *list, size_t *size)
+{
+  size_t i, j;
+
+  if (list == NULL || size == NULL || *size <= 1)
+    return;
+
+  for (i = 0; i < *size; i++) {
+    if (list[i] == 0) 
+      continue;
+
+    for (j = i + 1; j < *size; j++)  {
+      if (list[j] == list[i]) {
+        list[j] = 0;
+      }
+    }
+
+  }
+
+  remove_sentinels(list, size, 0);
+  return;
+}
+
+
+/*
  * function: depends_exist
  *
  * check if the a list of ids all exist on the project
@@ -158,13 +326,11 @@ static bool id_exists(planner *p, unsigned long id)
  *   id 
  *
  * return: true if all tasks exist
- *
- * modifies ids, removing duplicates
  */
 static bool depends_exist(planner *p, unsigned long *ids, size_t *n_ids)
 {
   l_node *node;
-  size_t i, j;
+  size_t i;
 
   for (i = 0; i < *n_ids; i++) {
     if (ids[i] == 0) 
@@ -174,16 +340,11 @@ static bool depends_exist(planner *p, unsigned long *ids, size_t *n_ids)
     if (node == NULL)
       return false;
 
-    for (j = *n_ids - 1; j > i; j--) {
-      if (ids[j] == ids[i]) {
-        ids[j] = 0;
-        (*n_ids)--;
-      }
-    }
   }
 
   return true;
 }
+
 
 /*
  * function: remove_task_id
