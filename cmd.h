@@ -13,4 +13,7 @@
 
 typedef enum {ADD = 0, DUR, DEP, RM, PATH, EXIT, INVALID} cmd;
 
+/* check if a command is valid */
+#define valid_command(a) ((a) != INVALID)
+
 #endif /* !CMD_H */
