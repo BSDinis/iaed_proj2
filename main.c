@@ -79,48 +79,10 @@ int main(int argc, char *argv[])
     }
 
     /* move stream to next line */
-    fgetc(stdin);
+    flush_line();
   } while(command != EXIT);
     
   return 0;
-}
-
-
-/*
- * function: get_cmd
- *
- * gets a command from a string
- *   cmd_str: string 
- *
- * return: cmd, with a specific command
- *   wrong input returns INVALID
- *
- */
-cmd get_cmd()
-{
-  cmd c;
-  char *cmd_str = NULL;
-
-  if (!get_str(&cmd_str))
-    return INVALID;
-
-  if (strcmp(cmd_str, "add") == 0)
-    c = ADD;
-  else if (strcmp(cmd_str, "duration") == 0)
-    c = DUR;
-  else if (strcmp(cmd_str, "depend") == 0)
-    c = DEP;
-  else if (strcmp(cmd_str, "remove") == 0) 
-    c = RM;
-  else if (strcmp(cmd_str, "path") == 0)
-    c = PATH;
-  else if (strcmp(cmd_str, "exit") == 0) 
-    c = EXIT;
-  else 
-    c = INVALID;
-
-  free(cmd_str);
-  return c;
 }
 
 
@@ -161,7 +123,8 @@ void add(planner *project)
 
   add_task(project, id, description, dur, ids, n_ids);
   free(description);
-  free(ids);
+  if (ids != NULL) 
+    free(ids);
 }
 
 

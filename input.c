@@ -10,19 +10,21 @@
 
 #include "input.h"
 
-#define INIT_ALLOC 512
-#define INIT_BUFF 1024
+/* a string will be a command => max len < 15  */
+#define CMD_BUFFER 15
+
+/* initial alloc size for list of ulongs */
+#define INIT_ULONG_LIST 32
+
+/* max size of an ulong */
+#define ULONG_BUFFER 10
+
+/* max len for quoted string */
+#define QUOTED_MAX 8000
 
 /*-------------------------------*/
 /* prototypes */
 /*-------------------------------*/
-
-/* verifies if a string is a representation of a ulong *
-static bool is_ulong(char *str);
-*/  
-
-/* verifies if a char is black (' ' or '\t') */
-static bool isblank(char c);
 
 /*-------------------------------*/
 /*-------------------------------*/
@@ -31,158 +33,83 @@ static bool isblank(char c);
 /*
  * function: get_ulong
  *
- * gets an unsigned long from the first token in str
- *   str: pointer to a string
+ * gets an unsigned long from the stdinput
  *   u: pointer to an unsigned long, to be filled
  *
  * return: false on incorrect input
+ *
+ * the ulong has to start with a space
+ * either ends with a space or a newline, putting either back
+ * on the stream
  */
-bool get_ulong(char **str, unsigned long *u)
+bool get_ulong(unsigned long *u)
 {
-  char *token = NULL;
+  char ch;
+  size_t i = 0;
+  *u = 0;
 
-  if (!get_str(str, &token)) {
-    free(token);
+  if ((ch = fgetc(stdin)) != ' ')
     return false;
+
+  while (isdigit(ch = fgetc(stdin)) && i < ULONG_BUFFER) {
+    *u *= 10;
+    *u += (ch - '0');
+    i++;
   }
 
-  if (/*!is_ulong(token) || */sscanf(token, "%lu", u) < 1) {
-    free(token);
-    return false;
+  if (ch == ' ' || ch == '\n') {
+    ungetc(ch, stdin);
+    return *u > 0;
   }
 
-  free(token);
-
-  if (*u == 0)
-    return false;
-
-  return true;
+  return false;
 }
-
-
-/*
- * function: is_ulong
- *
- * verifies if a string can be fully converted to an ulong
- *   str: string to be verified
- *
- * returns: true if the string only has digits
- *
-static bool is_ulong(char *str)
-{
-  int i = 0;
-  while (str[i] != '\0' && isdigit(str[i++]));
-
-  return str[i] == 0;
-}
-*/
 
 
 /*
  * function: get_ulong_list
  *
  * gets an unsigned long from the first token in str
- *   str: pointer to a string
- *   u: pointer to an unsigned long, to be filled
+ *   list: pointer to array of unsigned long's, to be filled
+ *   n_elems: pointer to an size_t, number of elements in the list
  *
  * return: false on incorrect input
  */
-bool get_ulong_list(char **str, unsigned long **list, size_t *n_elems)
+bool get_ulong_list(unsigned long **list, size_t *n_elems)
 {
-  unsigned long u;
-  size_t n_allocd = INIT_ALLOC;
-  *n_elems = 0;
-  *list = (unsigned long *) malloc(n_allocd * sizeof(unsigned long));
-
-  while (!empty_str(*str)) {
-    if (!get_ulong(str, &u)) {
-      free(*list);
-      return false;          
-    }
-    else {
-      (*list)[(*n_elems)++] = u;
-      if (*n_elems == n_allocd) {
-        n_allocd *= 2;
-        *list = (unsigned long *) realloc(*list, (n_allocd) * sizeof(unsigned long));
-      }
-    }
-  }
-
-  /* frees unnecessary memory */
-  *list = (unsigned long *) realloc(*list, (*n_elems) * sizeof(unsigned long));
-  return true;
-}
-
-/* 
- * function: get_line
- *
- * reads a line from stdin
- * allocates memory exponentially to accomodate growing input
- * includes the newline character
- *
- * return: string,
- *         NULL on EOF
- */
-char *get_line()
-{
-  size_t allocd, len;
-  char *line;
-  char ch;
-
-  allocd = INIT_BUFF;
-  len = 0;
-  line = (char *) malloc(allocd * sizeof(char));
-
-  while ((ch = fgetc(stdin)) != EOF && ch != '\n') {
-    line[len++] = ch;
-    if (len == allocd) {
-      allocd *= 2;
-      line = (char *) realloc(line, allocd * sizeof(char));
-    }
-  }
-
-  if (ch == EOF) {
-    free(line);
-    return NULL;
-  }
-
-  line[len++] = ' ';
-  line[len++] = '\n';
-  line[len++] = '\0';
-  line = (char *) realloc(line, len * sizeof(char));
-  return line;
-}
-
-
-/*
- * function: get_str
- *
- * gets a string delimited by a single whitespace 
- *   str: pointer to string where the token is extracted
- *   out_str: pointer to string, to be filled
- *
- * return: false on incorrect input
- */
-bool get_str(char **str, char **out_str)
-{
-  char *token;
-
-  token = strchr(*str, ' ');
+  bool flag = true;
+  unsigned long u = 0;
+  unsigned long *ull = NULL;
+  size_t allocd = INIT_ULONG_LIST;
+  size_t size = 0;
   
-  if (token == NULL) 
+
+  *list = NULL;
+  *n_elems = 0;
+
+  if (end_of_line()) 
+    return true;
+
+  ull = (unsigned long *) malloc(allocd * sizeof(unsigned long));
+
+  while (!end_of_line() &&(flag == get_ulong(&u))) {
+    if (size == allocd) {
+      allocd *= 2;
+      ull = (unsigned long *) realloc(ull, allocd * sizeof(unsigned long));
+    }
+    ull[size++] = u;
+  }
+
+  if (!flag) {
+    free(ull);
+    *list = NULL;
     return false;
+  }
 
-  if (strlen(token) == 1 || token[0] != ' ' || isblank(token[1]))
-    return false;
+  /* free unnecessary space */
+  *list = (unsigned long *) realloc(ull, size * sizeof(unsigned long));
+  *n_elems = size;
 
-  token[0] = '\0';
-
-  *out_str = malloc((strlen(*str) + 1) * sizeof(char));
-  strcpy(*out_str, *str);
-
-  token[0] = ' ';
-
-  *str = token + 1;
   return true;
 }
 
@@ -191,68 +118,145 @@ bool get_str(char **str, char **out_str)
  * function: get_quoted_str
  *
  * gets a string with the "<substr>" format
- *   str: pointer to string where the token is extracted
- *   out_str: pointer to string, to be filled
- *   max_len: maximum size of the string, excluding the terminator
+ *   str: pointer to string where the token is extracted to
  *
- * return: false on incorrect input or max_len exceeded
+ * return: false on incorrect input or buffer exceededs QUOTED_MAX
+ *
+ * stream must begin with a single space
  */
-bool get_quoted_str(char **str, char **out_str, size_t max_len)
+bool get_quoted_str(char **str)
 {
-  char *tok1, *tok2;
+  /* allocated in stack: cheap */
+  char buffer[QUOTED_MAX + 1];
+  char ch;
+  size_t str_size;
 
-  /* find first and second occurences of '"' in string */
-  tok1 = strchr(*str, '\"');
-  tok2 = strchr(tok1 + 1, '\"');
-  
-  if (tok1 == NULL || tok2 == NULL || strlen(tok2) == 1
-      || !isblank(tok2[1]) || isblank(tok2[2])) {
+  if (!((ch = fgetc(stdin)) == ' ' && (ch = fgetc(stdin)) == '\"'))
     return false;
-  }
+                
+  str_size = 0;
+  buffer[str_size++] = ch;
+  while ((ch = fgetc(stdin)) != '\"' && ch != '\n' && str_size < QUOTED_MAX) 
+    buffer[str_size++] = ch;
 
-  tok2[1] = '\0';
-
-  /* check for size restriciton */
-  if (strlen(tok1) > max_len) 
+  if (ch != '\"') 
     return false;
 
-  *out_str = malloc((strlen(tok1) + 1) * sizeof(char));
-  strcpy(*out_str, tok1);
+  buffer[str_size++] = '\"';
+  buffer[str_size] = '\0';
 
-  /* flush the string to after the quote and the space */
-  *str = tok2 + 2;
+  *str = (char *) malloc((str_size + 1) * sizeof(char));
+
+  strcpy(*str, buffer);
   return true;
 }
 
 
 /*
- * function: empty_str
+ * function: end_of_line
  *
- * checks if a string is empty
- *   str: string to be checked
+ * checks if stdin reached EOL
  *
- * return: true on empty str
+ * doesn't alter the position of the stream
  *
- * a str is empty if it is " \n" or "\n" or " "
- */
-bool empty_str(char *str)
-{
-  return (str == NULL
-          ||strcmp(str, " \n") == 0 
-          || strcmp(str, "\n") == 0 
-          || strcmp(str, " ") == 0);
-}
-
-/*
- * function: isblank
- *
- * check if a character is blank (either space or tab)
- *   c: char
- * 
  * return: bool
  */
-static bool isblank(char c)
+bool end_of_line()
 {
-  return c == ' ' || c == '\t';
+  char ch = fgetc(stdin);
+  if (ch == '\n' || ch == EOF) {
+    ungetc(ch, stdin);
+    return true;
+  }
+
+  ungetc(ch, stdin);
+  return false;
 }
 
+
+/*
+ * function: end_of_file
+ *
+ * checks if stdin reached EOF
+ *
+ * return: bool
+ */
+bool end_of_file()
+{
+  char ch = fgetc(stdin);
+  if (ch == EOF) {
+    ungetc(ch, stdin);
+    return true;
+  }
+
+  ungetc(ch, stdin);
+  return false;
+}
+
+
+/*
+ * function: flush_line
+ *
+ * flushes line, getting the stream to either the char after '\n'
+ * or leaving it at EOF
+ */
+void flush_line()
+{
+  char ch;
+  while ((ch = fgetc(stdin)) != '\n' && ch != EOF);
+}
+
+
+/*
+ * function: get_cmd
+ *
+ * get a command (different commands specified in cmd.h)
+ *
+ * cmd strings are:
+ *   * "add"
+ *   * "duration"
+ *   * "depend"
+ *   * "remove"
+ *   * "path"
+ *   * "exit"
+ * 
+ * return: cmd corresponding to a code for the commands listed
+ *         or an INVALID command
+ */
+cmd get_cmd()
+{
+  /* allocd in stack: quick and cheap */
+  char buffer[CMD_BUFFER];
+  size_t i;
+  char ch;
+
+  i = 0;
+  while (isalpha((ch = fgetc(stdin))) && i < CMD_BUFFER) {
+    buffer[i++] = ch;
+  }
+
+  if (ch == ' ' || ch == '\n' || ch == EOF) {
+    ungetc(ch, stdin);
+  }
+  else {
+    return INVALID;
+  }
+  
+  buffer[i] = '\0';
+
+  if (strcmp(buffer, "add") == 0) 
+    return ADD;
+  else if (strcmp(buffer, "duration") == 0)
+    return DUR;
+  else if (strcmp(buffer, "depend") == 0)
+    return DEP;
+  else if (strcmp(buffer, "remove") == 0)
+    return RM;
+  else if (strcmp(buffer, "path") == 0)
+    return PATH;
+  else if (strcmp(buffer, "exit") == 0)
+    return EXIT;
+
+
+  return INVALID;
+}

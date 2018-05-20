@@ -49,7 +49,7 @@ l_node *l_node_(l_item val, l_node *prev, l_node *next)
  */
 bool is_head(l_node *n)
 {
-  return prev(*n) == NULL;
+  return (n != NULL && prev(*n) == NULL);
 }
 
 
@@ -63,7 +63,7 @@ bool is_head(l_node *n)
  */
 bool is_tail(l_node *n)
 {
-  return next(*n) == NULL;
+  return (n != NULL && next(*n) == NULL);
 }
 
 
@@ -276,7 +276,7 @@ void free_lnkd_list(lnkd_list *l)
   if (l != NULL) {
     n = next(*next(*head(*l)));
 
-    while (!is_tail(n)) {
+    while (n != NULL && !is_tail(n)) {
       careless_free_l_node(prev(*n));
       n = go_next(n);
     }
