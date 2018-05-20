@@ -17,7 +17,11 @@
 #define INIT_ULONG_LIST 32
 
 /* max size of an ulong */
+#if ULONG_WIDTH == 32
 #define ULONG_BUFFER 10
+#else
+#define ULONG_BUFFER 20
+#endif
 
 /* max len for quoted string */
 #define QUOTED_MAX 8000
@@ -46,14 +50,20 @@ bool get_ulong(unsigned long *u)
 {
   char ch;
   size_t i = 0;
+  unsigned long old= 0;
   *u = 0;
 
-  if ((ch = fgetc(stdin)) != ' ')
+  if ((ch = getc(stdin)) != ' ')
     return false;
 
-  while (isdigit(ch = fgetc(stdin)) && i < ULONG_BUFFER) {
+  while (isdigit(ch = getc(stdin)) && i < ULONG_BUFFER) {
     *u *= 10;
     *u += (ch - '0');
+
+    /* check for overflow */
+    if (*u < old)
+      return false;
+
     i++;
   }
 
@@ -131,12 +141,12 @@ bool get_quoted_str(char **str)
   char ch;
   size_t str_size;
 
-  if (!((ch = fgetc(stdin)) == ' ' && (ch = fgetc(stdin)) == '\"'))
+  if (!((ch = getc(stdin)) == ' ' && (ch = getc(stdin)) == '\"'))
     return false;
                 
   str_size = 0;
   buffer[str_size++] = ch;
-  while ((ch = fgetc(stdin)) != '\"' && ch != '\n' && str_size < QUOTED_MAX) 
+  while ((ch = getc(stdin)) != '\"' && ch != '\n' && str_size < QUOTED_MAX) 
     buffer[str_size++] = ch;
 
   if (ch != '\"') 
@@ -163,7 +173,7 @@ bool get_quoted_str(char **str)
  */
 bool end_of_line()
 {
-  char ch = fgetc(stdin);
+  char ch = getc(stdin);
   if (ch == '\n' || ch == EOF) {
     ungetc(ch, stdin);
     return true;
@@ -183,7 +193,7 @@ bool end_of_line()
  */
 bool end_of_file()
 {
-  char ch = fgetc(stdin);
+  char ch = getc(stdin);
   if (ch == EOF) {
     ungetc(ch, stdin);
     return true;
@@ -203,7 +213,7 @@ bool end_of_file()
 void flush_line()
 {
   char ch;
-  while ((ch = fgetc(stdin)) != '\n' && ch != EOF);
+  while ((ch = getc(stdin)) != '\n' && ch != EOF);
 }
 
 
@@ -231,7 +241,7 @@ cmd get_cmd()
   char ch;
 
   i = 0;
-  while (isalpha((ch = fgetc(stdin))) && i < CMD_BUFFER) {
+  while (isalpha((ch = getc(stdin))) && i < CMD_BUFFER) {
     buffer[i++] = ch;
   }
 

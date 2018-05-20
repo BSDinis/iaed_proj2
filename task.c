@@ -13,8 +13,12 @@
 /* buffer for the description of a task (8000 chars as per specification) */
 #define DESCRIPT_BUFFER 8000
 
-/* buffer a ulong (ULONG_MAX = 4294967295 -> 10 chars) */
+/* max size of an ulong */
+#if ULONG_WIDTH == 32
 #define ULONG_BUFFER 10
+#else
+#define ULONG_BUFFER 20
+#endif
 
 /*-------------------------------*/
 /* prototypes */

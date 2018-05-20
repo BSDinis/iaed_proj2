@@ -16,8 +16,12 @@
 /* initial size allocated for the list of successors */
 #define INIT_SUCC_SIZE 64
 
-/* buffer a ulong (ULONG_MAX = 4294967295 -> 10 chars) */
+/* max size of an ulong */
+#if ULONG_WIDTH == 32
 #define ULONG_BUFFER 10
+#else
+#define ULONG_BUFFER 20
+#endif
 
 /*-------------------------------*/
 /* prototypes */
