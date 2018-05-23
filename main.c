@@ -30,7 +30,7 @@
  * also the number of implemented functionallities, 
  * represented by their wrapper functions
  */
-#define N_CMDS 6
+#define N_CMDS 8
 
 /*-------------------------------*/
 /* prototypes */
@@ -45,6 +45,10 @@ void depend(planner *project);
 void remove_task(planner *project);
 
 void path(planner *project);
+
+void first(planner *project);
+
+void second(planner *project);
 
 void exit_proj(planner *project);
 
@@ -61,7 +65,7 @@ int main(int argc, char *argv[])
 
   /* function array, with the implemented functionalities */
   void (*func[])(planner *) = 
-    {&add, &duration, &depend, &remove_task, &path, &exit_proj};
+    {&add, &duration, &depend, &remove_task, &path, &first, &second, &exit_proj};
 
   project = planner_();
 
@@ -208,6 +212,42 @@ void path(planner *project)
   }
 
   print_critical_path(project);
+}
+
+/*
+ * function: first
+ *
+ * prints the largest task_id of the project
+ *   project: ptr to planner
+ *
+ * parses the rest of the cmd string to call the print_largest_id function
+ */
+void first(planner *project)
+{
+  if (!end_of_line()) {
+    printf("illegal arguments\n");
+  }
+
+  print_largest_id(project);
+}
+
+
+/*
+ * function: second
+ *
+ * prints the id of the task with more dependencies
+ *   project: ptr to planner
+ *
+ * parses the rest of the cmd string to call the print_task_with_more_dependencies
+ * dependencies
+ */
+void second(planner *project)
+{
+  if (!end_of_line()) {
+    printf("illegal arguments\n");
+  }
+
+  print_task_with_more_dependencies(project);
 }
 
 

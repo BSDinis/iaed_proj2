@@ -73,4 +73,10 @@ void print_dependencies(planner *p, unsigned long id);
 /* print critical path */
 void print_critical_path(planner *p);
 
+/* prints largest id */
+void print_largest_id(planner *p);
+
+/* prints id of the task with more dependencies */
+void print_task_with_more_dependencies(planner *p);
+
 #endif /* !PLANNER_H */

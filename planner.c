@@ -435,3 +435,65 @@ static unsigned long calc_late_start(planner *p, p_task *t)
   change_late(t, new_late);
   return late(*t);
 }
+
+
+/*
+ * function: print_largest_id
+ *
+ * prints largest id 
+ *   p: ptr to planner
+ */
+void print_largest_id(planner *p)
+{
+  l_node *node;
+  unsigned long max_id = 0;
+
+  if (p == NULL) {
+    printf("error: planner.c: print_largest_id: NULL pointer\n");
+    return;
+  }
+
+
+  node = go_next(head(*list(*p)));
+
+  while (!is_tail(node)) {
+    max_id = max(id(*task(*val(*node))), max_id);
+    node = go_next(node);
+  }
+
+  printf("%lu\n", max_id);
+}
+
+
+
+/*
+ * function: print_task_with_more_dependencies
+ *
+ * prints id of the task which has more dependencies
+ *   p: ptr to planner
+ *
+ */
+void print_task_with_more_dependencies(planner *p)
+{
+  l_node *node;
+  unsigned long max_depends = 0, id = 0;
+
+  if (p == NULL) {
+    printf("error: planner.c: print_largest_id: NULL pointer\n");
+    return;
+  }
+
+  node = go_next(head(*list(*p)));
+
+  while (!is_tail(node)) {
+    if (max_depends < n_succ(*val(*node))) {
+      id = id(*task(*val(*node)));
+    }
+
+    node = go_next(node);
+  }
+
+  /* the list must be non-empty */
+  if (id != 0) 
+    printf("%lu\n", id);
+}

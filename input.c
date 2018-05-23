@@ -264,6 +264,10 @@ cmd get_cmd()
     return RM;
   else if (strcmp(buffer, "path") == 0)
     return PATH;
+  else if (strcmp(buffer, "first") == 0)
+    return FIRST;
+  else if (strcmp(buffer, "second") == 0)
+    return SECOND;
   else if (strcmp(buffer, "exit") == 0)
     return EXIT;
 
