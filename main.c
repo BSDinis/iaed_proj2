@@ -94,7 +94,7 @@ int main(int argc, char *argv[])
  * function: add
  *
  * adds a task to the project
- *   cmd_str: command string, only with the arguments
+ *   project: ptr to planner
  *
  * parses the rest of the cmd string to call the add_task function 
  * correct input:
@@ -136,7 +136,7 @@ void add(planner *project)
  * function: duration
  *
  * lists the tasks with a given (or longer) duration
- *   cmd_str: command string, only with the arguments
+ *   project: ptr to planner
  *
  * parses the rest of the cmd string to call the list_task_duration function 
  */
@@ -160,7 +160,7 @@ void duration(planner *project)
  * function: depend
  *
  * lists the dependencies of a task
- *   cmd_str: command string, only with the arguments
+ *   project: ptr to planner
  *
  * parses the rest of the cmd string to call the list_dependencies function 
  */
@@ -181,7 +181,7 @@ void depend(planner *project)
  * function: remove_task
  *
  * removes a task from the project
- *   cmd_str: command string, only with the arguments
+ *   project: ptr to planner
  *
  * parses the rest of the cmd string to call the remove_task_id function 
  */
@@ -201,7 +201,7 @@ void remove_task(planner *project)
  * function: path
  *
  * lists the critical path of a project
- *   cmd_str: command string, only with the arguments
+ *   project: ptr to planner
  *
  * parses the rest of the cmd string to call the proj_path function
  */
@@ -255,7 +255,7 @@ void second(planner *project)
  * function: exit_proj
  *
  * packs everything up to quit the program
- *   cmd_str: command string, only with the arguments
+ *   project: ptr to planner
  *
  * parses the rest of the cmd string to call the free_project function
  */
